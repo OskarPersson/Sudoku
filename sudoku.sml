@@ -17,7 +17,7 @@ fun oneUnknown [] = []
 
 
 (*
-vTillH (v, r)
+vToH (v, r)
 TYPE: 'a list list * int -> 'a list
 PRE: true
 POST: a list of elements on position r in each of the lists in v
