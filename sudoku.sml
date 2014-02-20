@@ -1,3 +1,4 @@
+PolyML.print_depth 1000000000;
 
 fun sumOfElements [] = 0
   | sumOfElements (l::ls) = l + sumOfElements ls;
@@ -37,6 +38,28 @@ POST: h updated with the corresponding elements in v
 fun updateVerticalToHorizontal ([], v) = []
   | updateVerticalToHorizontal (h::hs, v) = 
     vToH(v, 9 - List.length(hs)) :: updateVerticalToHorizontal(hs, v);
+
+(* vHoT (h, r)
+TYPE: 'a list list * int -> 'a list
+PRE: true
+POST: a list of elements on position r in each of the lists in h
+*)
+
+fun vHoT ([], _) = []
+  | vHoT (h::hs, row) =
+    [List.nth(h, row-1)] @ vHoT(hs, row);
+
+(*
+updateHorizontalToVertical (v,h)
+TYPE: 'a list * 'b list list -> 'b list list
+PRE: true
+POST: v updated with the corresponding elements in h
+*)
+
+fun updateHorizontalToVertical([], h) = []
+  | updateHorizontalToVertical (v::vs, h) = 
+    vHoT(h, 9 - List.length(vs)) :: updateHorizontalToVertical(vs, h);
+
 
 
 
