@@ -14,6 +14,33 @@ fun oneUnknown [] = []
 	(replaceOneUnknown (l, 45 - sumOfElements l)) :: (oneUnknown ls)
     else
 	l :: (oneUnknown ls);
+
+
+(*
+vTillH (v, r)
+TYPE: 'a list list * int -> 'a list
+PRE: true
+POST: a list of elements on position r in each of the lists in v
+*)
+
+fun vToH ([], _) = []
+  | vToH (v::vs, row) =
+    [List.nth(v, row-1)] @ vToH(vs, row);
+
+(*
+updateVerticalToHorizontal (h,v)
+TYPE: 'a list * 'b list list -> 'b list list
+PRE: true
+POST: h updated with the corresponding elements in v
+*)
+
+fun updateVerticalToHorizontal ([], v) = []
+  | updateVerticalToHorizontal (h::hs, v) = 
+    vToH(v, 9 - List.length(hs)) :: updateVerticalToHorizontal(hs, v);
+
+
+
+
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
 	 [6,8,9,2,3,7,0,4,0],
