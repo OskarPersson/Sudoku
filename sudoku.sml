@@ -45,9 +45,9 @@ PRE: true
 POST: a list of elements on position r in each of the lists in h
 *)
 
-fun vHoT ([], _) = []
-  | vHoT (h::hs, row) =
-    [List.nth(h, row-1)] @ vHoT(hs, row);
+fun hToV ([], _) = []
+  | hToV (h::hs, row) =
+    [List.nth(h, row-1)] @ hToV(hs, row);
 
 (*
 updateHorizontalToVertical (v,h)
@@ -58,7 +58,7 @@ POST: v updated with the corresponding elements in h
 
 fun updateHorizontalToVertical([], h) = []
   | updateHorizontalToVertical (v::vs, h) = 
-    vHoT(h, 9 - List.length(vs)) :: updateHorizontalToVertical(vs, h);
+    hToV(h, 9 - List.length(vs)) :: updateHorizontalToVertical(vs, h);
 
 
 
