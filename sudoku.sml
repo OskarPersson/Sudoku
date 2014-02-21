@@ -1,5 +1,17 @@
 PolyML.print_depth 1000000000;
 
+(* REPRESENTATION CONVENTION: Consists of three lists which represents the rows, 
+                              the columns and the 3x3-squares of a sudoku puzzle, respectively.
+                              An unknown element is represented by 0
+   REPRESENTATION INVARIANT: 
+*)
+datatype Sudoku = Puzzle of int list list * int list list * int list list;
+
+(* REPRESENTATION CONVENTION: Represents a tree of sudoku puzzles where the first element is the node and
+                              the second element represents the subtrees
+   REPRESENTATION INVARIANT:
+*)
+datatype SudokuTree = STree of Sudoku * SudokuTree list;
 fun sumOfElements [] = 0
   | sumOfElements (l::ls) = l + sumOfElements ls;
 
