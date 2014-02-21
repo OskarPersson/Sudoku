@@ -63,6 +63,56 @@ fun updateHorizontalToVertical([], h) = []
 
 
 
+fun updateHorizontalToSquare ([]) = []
+  | updateHorizontalToSquare (h) = 
+    let
+
+	val row1 = List.nth(h, 0)
+	val row2 = List.nth(h, 1)
+	val row3 = List.nth(h, 2)
+	val row4 = List.nth(h, 3)
+	val row5 = List.nth(h, 4)
+	val row6 = List.nth(h, 5)
+	val row7 = List.nth(h, 6)
+	val row8 = List.nth(h, 7)
+	val row9 = List.nth(h, 8)
+	
+
+	val topLeft = List.take(row1, 3) @
+		      List.take(row2, 3) @
+		      List.take(row3, 3)
+	val topMiddle = List.take(List.drop(row1, 3), 3) @ 
+			List.take(List.drop(row2, 3), 3) @
+			List.take(List.drop(row3, 3), 3)
+	val topRight = List.drop(row1, 6) @
+		       List.drop(row2, 6) @
+		       List.drop(row3, 6)
+	val middleLeft = List.take(row4, 3) @
+			 List.take(row5, 3) @
+			 List.take(row6, 3)
+	val middleMiddle = List.take(List.drop(row4, 3), 3) @
+			   List.take(List.drop(row5, 3), 3) @
+			   List.take(List.drop(row6, 3), 3)
+	val middleRight = List.drop(row4, 6) @
+			  List.drop(row5, 6) @
+			  List.drop(row6, 6)
+	val bottomLeft = List.take(row7, 3) @
+			 List.take(row8, 3) @
+			 List.take(row9, 3)
+	val bottomMiddle = List.take(List.drop(row7, 3), 3) @ 
+			   List.take(List.drop(row8, 3), 3) @ 
+			   List.take(List.drop(row9, 3), 3)
+	val bottomRight = List.drop(row7, 6) @ 
+			  List.drop(row8, 6) @ 
+			  List.drop(row9, 6)
+    in
+	topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
+	middleRight :: bottomLeft :: bottomMiddle :: bottomRight :: []
+    end
+    
+
+
+
 
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
