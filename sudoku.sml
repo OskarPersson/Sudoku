@@ -110,7 +110,52 @@ fun updateHorizontalToSquare ([]) = []
 	middleRight :: bottomLeft :: bottomMiddle :: bottomRight :: []
     end
     
+fun updateSquareToHorizontal ([]) = []
+  | updateSquareToHorizontal (r) = 
+    let
 
+	val square1 = List.nth(r, 0)
+	val square2 = List.nth(r, 1)
+	val square3 = List.nth(r, 2)
+	val square4 = List.nth(r, 3)
+	val square5 = List.nth(r, 4)
+	val square6 = List.nth(r, 5)
+	val square7 = List.nth(r, 6)
+	val square8 = List.nth(r, 7)
+	val square9 = List.nth(r, 8)
+	
+
+	val row1 = List.take(square1, 3) @
+		      List.take(square2, 3) @
+		      List.take(square3, 3)
+	val row2 = List.take(List.drop(square1, 3), 3) @ 
+			List.take(List.drop(square2, 3), 3) @
+			List.take(List.drop(square3, 3), 3)
+	val row3 = List.drop(square1, 6) @
+		       List.drop(square2, 6) @
+		       List.drop(square3, 6)
+	val row4 = List.take(square4, 3) @
+			 List.take(square5, 3) @
+			 List.take(square6, 3)
+	val row5 = List.take(List.drop(square4, 3), 3) @
+			   List.take(List.drop(square5, 3), 3) @
+			   List.take(List.drop(square6, 3), 3)
+	val row6 = List.drop(square4, 6) @
+			  List.drop(square5, 6) @
+			  List.drop(square6, 6)
+	val row7 = List.take(square7, 3) @
+			 List.take(square8, 3) @
+			 List.take(square9, 3)
+	val row8 = List.take(List.drop(square7, 3), 3) @ 
+			   List.take(List.drop(square8, 3), 3) @ 
+			   List.take(List.drop(square9, 3), 3)
+	val row9 = List.drop(square7, 6) @ 
+			  List.drop(square8, 6) @ 
+			  List.drop(square9, 6)
+    in
+	row1 :: row2 :: row3 :: row4 :: row5 ::
+	row6 :: row7 :: row8 :: row9 :: []
+    end
 
 
 
