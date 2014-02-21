@@ -169,7 +169,37 @@ fun updateSquareToHorizontal ([]) = []
 	row6 :: row7 :: row8 :: row9 :: []
     end
 
+fun ascii' ([]) = ""
+  | ascii' (h::hs) =
+    let
+        val lhs = length(hs)
+    in
+        if 9 - lhs = 1 then
+            "| " ^ Int.toString(h) ^ " " ^ ascii'(hs)
+        else if 9 - lhs = 3 orelse 9 - lhs = 6 orelse 9 - lhs = 9 then
+            Int.toString(h) ^ " | " ^ ascii'(hs)
+	else
+	    Int.toString(h) ^ " " ^ ascii'(hs)
+    end;
 
+fun ascii ([]) = ()
+  | ascii (h::hs) =
+    let 
+	val lhs = List.length(hs)
+    in
+	(
+	if 9 - lhs = 1 then
+	    (print("+-----------------------+\n");
+	     print(ascii'(h) ^ "\n"))
+	else if 9 - lhs = 9 orelse 9 - lhs = 3 orelse 9 - lhs = 6  then
+	    (print(ascii'(h) ^ "\n");
+	     print("+-----------------------+\n"))
+	else
+	    print(ascii'(h) ^ "\n");
+	     
+	ascii(hs)
+	)
+    end
 
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
