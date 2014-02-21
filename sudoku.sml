@@ -39,7 +39,7 @@ fun updateVerticalToHorizontal ([], v) = []
   | updateVerticalToHorizontal (h::hs, v) = 
     vToH(v, 9 - List.length(hs)) :: updateVerticalToHorizontal(hs, v);
 
-(* vHoT (h, r)
+(* hToV (h, r)
 TYPE: 'a list list * int -> 'a list
 PRE: true
 POST: a list of elements on position r in each of the lists in h
