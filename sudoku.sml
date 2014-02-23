@@ -170,6 +170,148 @@ fun updateSquareToHorizontal ([]) = []
     end
 
 
+(* ====================== http://stackoverflow.com/a/5631165/1523238 ====================== *)
+
+(* interleave x l
+   TYPE: 'a -> 'a list -> 'a list list
+   PRE: true
+   POST: a list of lists where x is moving one step through l each time
+*)
+
+
+fun interleave x [] = [[x]]
+  | interleave x (h::t) =
+    (x::h::t)::(List.map(fn l => h::l) (interleave x t))
+
+(* permute l
+   TYPE: 'a list -> 'a list list
+   PRE: true
+   POST: permutations of l
+   EXAMPLE: permute [1,2,3] = [[1, 2, 3], [2, 1, 3], [2, 3, 1], [1, 3, 2], [3, 1, 2], [3, 2, 1]] 
+*)
+		   
+fun permute nil = [[]]
+  | permute (h::t) = List.concat( List.map (fn l => interleave h l) (permute t))
+
+(* ======================================================================================== *)
+
+
+(* notInSquare' (l, n, acc)
+   TYPE: int list * int * int list -> int list
+   PRE: true
+   POST: numbers 1-9 that are missing in l
+*)
+
+fun notInSquare' (_, 0, acc) = acc
+  | notInSquare' (l, n, acc) = if (List.exists (fn x => x = n) l)  = false then
+				  notInSquare'(l, n-1, n::acc)
+			      else
+				  notInSquare'(l, n-1, acc)
+
+(* notInSquare (l)
+   TYPE: int list -> int list
+   PRE: true
+   POST: numbers 1-9 that are missing in l
+*)
+
+fun notInSquare(l) = notInSquare'(l, 9, []);
+
+(*
+  squareWithMostUnknowns' (r, acc, n)
+  TYPE: int list list * int list * int -> int list * int
+  PRE: true
+  POST: the first 3x3 square list in r with the most unknown elements, and the position of it
+*)
+
+
+fun squareWithMostUnknowns' ([], acc, n) = (acc, n)
+  | squareWithMostUnknowns' (r::rs, acc, n) = 
+    if List.length (List.filter (fn x => x = 0) r) > List.length (List.filter (fn x => x = 0) acc) then
+	squareWithMostUnknowns' (rs, r, 9 - List.length(rs))
+    else
+	squareWithMostUnknowns' (rs, acc, n);
+
+(*
+  squareWithMostUnknowns (r)
+  TYPE: int list list -> int list * int
+  PRE: true
+  POST: the first 3x3 square list in r with the most unknown elements along with the position of it in r
+*)
+
+
+fun squareWithMostUnknowns (r) = squareWithMostUnknowns'(r, [], 0);
+
+
+(* possibleSolutionsForSquare' (s, m)
+   TYPE: int list * int list -> int list
+   PRE: true
+   POST: s with each zero replaced with the next element in m
+   EXAMPLE: possibleSolutionsForSquare'([1,0,0,4,5,6,7,8,9], [2,3]) = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+*)
+
+fun possibleSolutionsForSquare' ([], _) = []
+  | possibleSolutionsForSquare' (l, []) = l
+  | possibleSolutionsForSquare' (l::ls, m::ms) = 
+    if l = 0 then
+	m :: possibleSolutionsForSquare'(ls, ms)
+    else
+	l :: possibleSolutionsForSquare'(ls, m::ms)
+
+(* possibleSolutionsForSquare (s, missing)
+   TYPE: int list * int list list -> int list list
+   PRE: true
+   POST: possible solutions for the square s
+   EXAMPLE: possibleSolutionsForSquare([1,0,0,4,5,6,7,8,9], [[2,3], [3,2]]) = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 2, 4, 5, 6, 7, 8, 9]]
+*)
+
+fun possibleSolutionsForSquare (s, []) = []
+  | possibleSolutionsForSquare (s, m::ms) = possibleSolutionsForSquare'(s, m) :: possibleSolutionsForSquare (s, ms);
+
+
+(* replaceAtPos' (l, n, pos)
+   TYPE: 'a list * 'a * int -> 'a list
+   PRE: true
+   POST: l with the element at position pos replaced with n
+*)
+
+fun replaceAtPos' (l, new, pos) = 
+    List.take(l, pos-1) @ [new]  @ List.drop(l, pos);
+
+
+(* replaceAtPos (p, n, pos)
+   TYPE: Sudoku * int list list * int -> Sudoku list
+   PRE: true
+   POST: A list with puzzles where the square at position pos in p
+         has been replaced with each list in n
+*)
+
+fun replaceAtPos (_, [], _) = []
+  | replaceAtPos (p as Puzzle(h, v, r), n::ns, pos) = 
+    let
+	val newS = (replaceAtPos'(r, n, pos))
+	val newH = updateSquareToHorizontal (newS)
+	val newV = updateHorizontalToVertical (v, newH)
+    in
+	Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
+    end;
+
+(* possibleNextSteps p
+   TYPE: Sudoku -> Sudoku list
+   PRE: true
+   POST: possible next steps for the puzzle p
+*)
+
+fun possibleNextSteps (p as Puzzle(h, v, r)) = 
+    let    
+	val (square, squareNumber) = squareWithMostUnknowns (r)
+	val missing = notInSquare (square)
+	val permutations = permute(missing)
+	val solutionsForSquare = possibleSolutionsForSquare(square, permutations)
+    in
+	replaceAtPos(p, solutionsForSquare, squareNumber)
+    end;
+
+
 
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
@@ -194,3 +336,5 @@ val v = [[0,4,6,0,2,3,0,7,9],
 val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
 	 [0,0,5,2,7,4,3,9,6],[3,6,2,0,9,0,5,7,4],[9,7,4,6,5,3,8,0,0],
 	 [0,4,0,7,6,1,9,3,8],[6,1,8,0,4,0,7,2,5],[3,9,7,5,2,8,0,6,0]];
+
+val p = Puzzle(h,v,r)
