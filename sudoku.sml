@@ -183,7 +183,7 @@ fun ascii' ([]) = ""
     end;
 
 fun ascii ([]) = ()
-  | ascii (h::hs) =
+  | ascii (Puzzle(h::hs, v, r)) =
     let 
 	val lhs = List.length(hs)
     in
@@ -197,7 +197,7 @@ fun ascii ([]) = ()
 	else
 	    print(ascii'(h) ^ "\n");
 	     
-	ascii(hs)
+	ascii(Puzzle(hs, v, r))
 	)
     end
 
