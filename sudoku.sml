@@ -200,6 +200,22 @@ fun ascii ([]) = ()
 	ascii(hs)
 	)
     end
+
+fun duplicatesExists' [] = false
+  | duplicatesExists' (l::ls) = 
+    if List.exists (fn x => x = l andalso x <> 0 ) ls then
+	true
+    else
+	duplicatesExists' ls;
+
+fun duplicatesExists ([]) = false
+  | duplicatesExists (l::ls) = 
+    if duplicatesExists'(l) then
+	true
+    else
+	duplicatesExists ls;
+
+
 (* ====================== http://stackoverflow.com/a/5631165/1523238 ====================== *)
 
 (* interleave x l
@@ -322,7 +338,10 @@ fun replaceAtPos (_, [], _) = []
 	val newH = updateSquareToHorizontal (newS)
 	val newV = updateHorizontalToVertical (v, newH)
     in
-	Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
+	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) then
+	    Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
+	else
+	    replaceAtPos(p, ns, pos)
     end;
 
 (* possibleNextSteps p
