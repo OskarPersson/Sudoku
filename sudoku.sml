@@ -21,13 +21,23 @@ fun replaceOneUnknown ([], _) = []
 
 
 
-fun oneUnknown [] = [] 
-  | oneUnknown (l::ls) = 
+fun oneUnknown' [] = [] 
+  | oneUnknown' (l::ls) = 
     if List.length (List.filter (fn x => x = 0) l) = 1 then
-	(replaceOneUnknown (l, 45 - sumOfElements l)) :: (oneUnknown ls)
+	(replaceOneUnknown (l, 45 - sumOfElements l)) :: (oneUnknown' ls)
     else
-	l :: (oneUnknown ls);
+	l :: (oneUnknown' ls);
 
+
+fun oneUnknown l = 
+    let
+	val newL = oneUnknown' l
+    in
+	if newL = l then
+	    l
+	else
+	    oneUnknown newL
+    end;
 
 (*
 vToH (v, r)
@@ -360,6 +370,18 @@ fun possibleNextSteps (p as Puzzle(h, v, r)) =
 	replaceAtPos(p, solutionsForSquare, squareNumber)
     end;
 
+fun oneUnknownOnPuzzle (Puzzle(h, v, r)) = 
+    let
+	val newH = oneUnknown h;
+	val newV = oneUnknown (updateHorizontalToVertical(v, h))
+	val newR = oneUnknown (updateHorizontalToSquare (h))
+	val newH = oneUnknown (updateVerticalToHorizontal (h, newV))		      
+    in
+	if Puzzle(newH, newV, newR) = Puzzle(h, v, r) then
+	    Puzzle(newH, newV, newR)
+	else
+	    oneUnknownOnPuzzle (Puzzle(newH, newV, newR))
+    end;
 
 
 val h = [[0,2,0,4,5,6,7,8,9],
