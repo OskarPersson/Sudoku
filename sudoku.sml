@@ -182,7 +182,7 @@ fun ascii' ([]) = ""
 	    Int.toString(h) ^ " " ^ ascii'(hs)
     end;
 
-fun ascii ([]) = ()
+fun ascii (Puzzle([], _, _)) = ()
   | ascii (Puzzle(h::hs, v, r)) =
     let 
 	val lhs = List.length(hs)
