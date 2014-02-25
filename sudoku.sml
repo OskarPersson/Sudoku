@@ -13,14 +13,32 @@ datatype Sudoku = Puzzle of int list list * int list list * int list list;
 *)
 datatype SudokuTree = Empty
 	 | STree of Sudoku * SudokuTree list;
+
+(* sumOfElements l
+   TYPE: int list -> int
+   PRE: true
+   POST: sum of all elements in l
+*)
+
 fun sumOfElements [] = 0
   | sumOfElements (l::ls) = l + sumOfElements ls;
+
+
+(* replaceOneUnknown (l, n)
+   TYPE: int list * int -> int list
+   PRE: true
+   POST: replaces the 0 in l with n
+*)
 
 fun replaceOneUnknown ([], _) = []
   | replaceOneUnknown (0::ls, new) = new :: (replaceOneUnknown (ls, new))
   | replaceOneUnknown (l::ls, new) = l :: (replaceOneUnknown(ls, new));
 
-
+(* oneUnknown' l
+   TYPE: int list list -> int list list
+   PRE: l only contains unique numbers 0-9. With maximum of 9 elements
+   POST: replaces the 0 in l with the missing element of 1-9
+*)
 
 fun oneUnknown' [] = [] 
   | oneUnknown' (l::ls) = 
@@ -29,6 +47,11 @@ fun oneUnknown' [] = []
     else
 	l :: (oneUnknown' ls);
 
+(* oneUnknown l
+   TYPE: int list list -> int list list
+   PRE: l only contains unique numbers 0-9. With maximum of 9 elements
+   POST: replaces the 0 in l with the missing element of 1-9
+*)
 
 fun oneUnknown l = 
     let
@@ -85,6 +108,11 @@ fun updateHorizontalToVertical([], h) = []
 
 
 
+(* updateHorizontalToSquare l
+   TYPE: 'a list list -> 'a list list
+   PRE: l contains 9 lists, with 9 elements each
+   POST: the lists divided into 3x3-squares
+*)
 
 fun updateHorizontalToSquare ([]) = []
   | updateHorizontalToSquare (h) = 
@@ -133,6 +161,12 @@ fun updateHorizontalToSquare ([]) = []
 	middleRight :: bottomLeft :: bottomMiddle :: bottomRight :: []
     end
     
+(* updateSquareToHorizontal l
+   TYPE: 'a list list -> 'a list list
+   PRE: l contains 9 lists, with 9 elements each
+   POST: the 3x3 squares divided into 9 rows
+*)
+
 fun updateSquareToHorizontal ([]) = []
   | updateSquareToHorizontal (r) = 
     let
@@ -180,6 +214,12 @@ fun updateSquareToHorizontal ([]) = []
 	row6 :: row7 :: row8 :: row9 :: []
     end
 
+(* ascii' l
+   TYPE: int list -> string
+   PRE: l contains 9 elements
+   POST: string representation of l
+*)
+
 fun ascii' ([]) = ""
   | ascii' (h::hs) =
     let
@@ -192,6 +232,13 @@ fun ascii' ([]) = ""
 	else
 	    Int.toString(h) ^ " " ^ ascii'(hs)
     end;
+
+(* ascii s
+   TYPE: Sudoku -> unit
+   PRE: l contains 9 lists, with 9 elements each
+   POST: ()
+   SIDE-EFFECTS: prints the ascii representation of s
+*)
 
 fun ascii (Puzzle([], _, _)) = ()
   | ascii (Puzzle(h::hs, v, r)) =
@@ -212,12 +259,25 @@ fun ascii (Puzzle([], _, _)) = ()
 	)
     end
 
+(* duplicatesExists' l
+   TYPE: int list -> bool
+   PRE: true
+   POST: true if duplicates exists in l, false otherwise
+*)
+
 fun duplicatesExists' [] = false
   | duplicatesExists' (l::ls) = 
     if List.exists (fn x => x = l andalso x <> 0 ) ls then
 	true
     else
 	duplicatesExists' ls;
+
+
+(* duplicatesExists l
+   TYPE: int list -> bool
+   PRE: true
+   POST: true if duplicates exists in l, false otherwise
+*)
 
 fun duplicatesExists ([]) = false
   | duplicatesExists (l::ls) = 
@@ -274,29 +334,31 @@ fun notInSquare' (_, 0, acc) = acc
 fun notInSquare(l) = notInSquare'(l, 9, []);
 
 (*
-  squareWithMostUnknowns' (r, acc, n)
+  squareWithLeastUnknowns' (r, acc, n)
   TYPE: int list list * int list * int -> int list * int
   PRE: true
-  POST: the first 3x3 square list in r with the most unknown elements, and the position of it
+  POST: the first 3x3 square list in r with the lowest amount of unknown elements, and the position of it
 *)
 
 
-fun squareWithMostUnknowns' ([], acc, n) = (acc, n)
-  | squareWithMostUnknowns' (r::rs, acc, n) = 
-    if List.length (List.filter (fn x => x = 0) r) > List.length (List.filter (fn x => x = 0) acc) then
-	squareWithMostUnknowns' (rs, r, 9 - List.length(rs))
+fun squareWithLeastUnknowns' ([], acc, n) = (acc, n)
+  | squareWithLeastUnknowns' (r::rs, acc, n) = 
+    if (List.length (List.filter (fn x => x = 0) r) < List.length (List.filter (fn x => x = 0) acc) andalso 
+       (List.exists (fn x => x = 0) r)) orelse List.length (List.filter (fn x => x = 0) acc) = 0  then
+
+	squareWithLeastUnknowns' (rs, r, 9 - List.length(rs))
     else
-	squareWithMostUnknowns' (rs, acc, n);
+	squareWithLeastUnknowns' (rs, acc, n);
 
 (*
-  squareWithMostUnknowns (r)
+  squareWithLeastUnknowns (r)
   TYPE: int list list -> int list * int
   PRE: true
-  POST: the first 3x3 square list in r with the most unknown elements along with the position of it in r
+  POST: the first 3x3 square list in r with the lowest amount of unknown elements along with the position of it in r
 *)
 
 
-fun squareWithMostUnknowns (r) = squareWithMostUnknowns'(r, List.hd(r), 1);
+fun squareWithLeastUnknowns (r) = squareWithLeastUnknowns'(r, List.hd(r), 1);
 
 
 (* possibleSolutionsForSquare' (s, m)
@@ -366,13 +428,20 @@ fun replaceAtPos (_, [], _) = []
 
 fun possibleNextSteps (p as Puzzle(h, v, r)) = 
     let    
-	val (square, squareNumber) = squareWithMostUnknowns (r)
+	val (square, squareNumber) = squareWithLeastUnknowns (r)
 	val missing = notInSquare (square)
 	val permutations = permute(missing)
 	val solutionsForSquare = possibleSolutionsForSquare(square, permutations)
     in
 	replaceAtPos(p, solutionsForSquare, squareNumber)
     end;
+
+(* oneUnknownOnPuzzle s
+   TYPE: Sudoku -> Sudoku
+   PRE: true
+   POST: s with unknowns replaced on rows, columns and squares
+         where there are only one unknown
+*)
 
 fun oneUnknownOnPuzzle (Puzzle(h, v, r)) = 
     let
@@ -387,13 +456,30 @@ fun oneUnknownOnPuzzle (Puzzle(h, v, r)) =
 	    oneUnknownOnPuzzle (Puzzle(newH, newV, newR))
     end;
 
+(* sumOfAllElements l
+   TYPE: int list list -> int
+   PRE: true
+   POST: sum of all elements in all lists in l
+*)
 
 fun sumOfAllElements [] = 0 
   | sumOfAllElements (l::ls) = sumOfElements(l) + sumOfAllElements(ls);
 
+(* listToTreeList l
+   TYPE: Sudoku list -> SudokuTree list
+   PRE: true
+   POST: a list of trees where the elements in l are the nodes in each tree
+*)
+
 fun listToTreeList [] = []
   | listToTreeList (l::ls) = 
     STree(l, []) :: listToTreeList(ls)
+
+(* traversal s
+   TYPE: SudokuTree -> Sudoku option
+   PRE: true
+   POST: some solution to s if there is one, none otherwise.
+*)
 
 fun traversal (Empty) = NONE
   | traversal (STree(p as (Puzzle(h, v, r)), [])) = 
@@ -408,7 +494,7 @@ fun traversal (Empty) = NONE
 		NONE
 
 	else if ppp = [pp]  then
-	    if sumOfAllElements(h) = 405 then
+	    if sumOfAllElements(ph) = 405 then
 		SOME pp
 	    else
 		NONE
@@ -421,6 +507,7 @@ fun traversal (Empty) = NONE
 	val nn = oneUnknownOnPuzzle n;
 	val nnn = possibleNextSteps nn;
     in
+	
 	if traversal l = NONE then
 	    traversal(STree(p, ls))
 	else
@@ -428,7 +515,29 @@ fun traversal (Empty) = NONE
 		
     end;
     
+(*
+(*CUSTOM*)
 
+val h = [[0, 0, 3, 0, 0, 0, 7, 8, 9], 
+	 [0, 0, 7, 0, 0, 0, 2, 3, 6],
+	 [6, 8, 9, 0, 3, 7, 1, 4, 5],
+	 [8, 0, 0, 3, 6, 2, 9, 7, 4],
+	 [0, 7, 0, 8, 9, 1, 6, 5, 3], 
+	 [3, 9, 6, 5, 7, 4, 8, 1, 2],
+	 [5, 4, 2, 6, 1, 8, 3, 9, 7], 
+	 [7, 6, 1, 9, 4, 3, 5, 2, 8],
+	 [9, 3, 8, 7, 2, 5, 4, 6, 1]];
+
+val v = updateHorizontalToVertical (h, h);
+
+val r = updateHorizontalToSquare (h);
+
+
+val p = Puzzle(h, v, r);
+
+val t = STree(p, []);
+*)
+(* EASY
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
 	 [6,8,9,2,3,7,0,4,0],
@@ -456,8 +565,8 @@ val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
 val p = Puzzle(h,v,r)
 
 
-val t = STree (p, []);
-
+val t = STree (p, []);*)
+(*
 
 val h2 = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 7, 1, 8, 9, 2, 3, 6],
     [6, 8, 9, 2, 3, 7, 1, 4, 5], [8, 1, 5, 3, 6, 2, 9, 7, 4],
@@ -488,3 +597,57 @@ val r3 = updateHorizontalToSquare(h3);
 val p3 = Puzzle (h3, v3, r3);
 
 val t3 = STree(p3, []);
+*)
+
+
+(* HARD
+val h = [[0,0,0,8,4,0,0,0,9],
+	 [0,0,1,0,0,0,0,0,5],
+	 [8,0,0,0,2,1,4,6,0],
+	 [7,0,8,0,0,0,0,9,0],
+	 [0,0,0,0,0,0,0,0,0],
+	 [0,5,0,0,0,0,3,0,1],
+	 [0,2,4,9,1,0,0,0,7],
+	 [9,0,0,0,0,0,5,0,0],
+	 [3,0,0,0,8,4,0,0,0]];
+
+val v = [[0,4,6,0,2,3,0,7,9],
+	 [2,5,8,0,7,9,4,6,3],
+	 [0,7,9,5,4,6,0,1,8],
+	 [4,0,2,3,0,5,6,0,7],
+	 [5,8,3,6,9,7,1,4,2],
+	 [6,0,7,2,0,4,8,0,5],
+	 [7,2,0,9,6,8,3,5,0],
+	 [8,3,4,7,5,0,9,2,6],
+	 [9,6,0,4,3,0,7,8,0]];
+
+val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
+	 [0,0,5,2,7,4,3,9,6],[3,6,2,0,9,0,5,7,4],[9,7,4,6,5,3,8,0,0],
+	 [0,4,0,7,6,1,9,3,8],[6,1,8,0,4,0,7,2,5],[3,9,7,5,2,8,0,6,0]];
+
+val p = Puzzle(h,v,r)
+
+
+val t = STree (p, []);
+*)
+
+
+(* MEDIUM *)
+val h = [[0,0,3,0,9,2,0,0,0],
+	 [4,0,0,0,3,0,0,1,0],
+	 [2,7,0,0,0,0,0,0,0],
+	 [0,1,0,3,0,0,0,0,8],
+	 [0,5,0,1,6,7,0,3,0],
+	 [3,0,0,0,0,8,0,6,0],
+	 [0,0,0,0,0,0,0,5,3],
+	 [0,3,0,0,8,0,0,0,9],
+	 [0,0,0,6,2,0,1,0,0]];
+
+val v = updateHorizontalToVertical(h, h);
+
+val r  = updateHorizontalToSquare(h);
+
+val p = Puzzle(h,v,r)
+
+val t = STree (p, []);
+
