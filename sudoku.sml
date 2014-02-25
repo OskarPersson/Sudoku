@@ -11,7 +11,8 @@ datatype Sudoku = Puzzle of int list list * int list list * int list list;
                               the second element represents the subtrees
    REPRESENTATION INVARIANT:
 *)
-datatype SudokuTree = STree of Sudoku * SudokuTree list;
+datatype SudokuTree = Empty
+	 | STree of Sudoku * SudokuTree list;
 fun sumOfElements [] = 0
   | sumOfElements (l::ls) = l + sumOfElements ls;
 
@@ -295,7 +296,7 @@ fun squareWithMostUnknowns' ([], acc, n) = (acc, n)
 *)
 
 
-fun squareWithMostUnknowns (r) = squareWithMostUnknowns'(r, [], 0);
+fun squareWithMostUnknowns (r) = squareWithMostUnknowns'(r, List.hd(r), 1);
 
 
 (* possibleSolutionsForSquare' (s, m)
@@ -330,8 +331,10 @@ fun possibleSolutionsForSquare (s, []) = []
    POST: l with the element at position pos replaced with n
 *)
 
-fun replaceAtPos' (l, new, pos) = 
-    List.take(l, pos-1) @ [new]  @ List.drop(l, pos);
+fun replaceAtPos' (l, new, 0) = 
+    List.take(l, 0) @ [new]  @ List.drop(l, 0)
+| replaceAtPos' (l, new, pos) = 
+  List.take(l, pos-1) @ [new]  @ List.drop(l, pos)
 
 
 (* replaceAtPos (p, n, pos)
@@ -348,7 +351,8 @@ fun replaceAtPos (_, [], _) = []
 	val newH = updateSquareToHorizontal (newS)
 	val newV = updateHorizontalToVertical (v, newH)
     in
-	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) then
+	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
+	   Puzzle(h, v, r) <> Puzzle(newH, newV, newS) then
 	    Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
 	else
 	    replaceAtPos(p, ns, pos)
@@ -384,6 +388,47 @@ fun oneUnknownOnPuzzle (Puzzle(h, v, r)) =
     end;
 
 
+fun sumOfAllElements [] = 0 
+  | sumOfAllElements (l::ls) = sumOfElements(l) + sumOfAllElements(ls);
+
+fun listToTreeList [] = []
+  | listToTreeList (l::ls) = 
+    STree(l, []) :: listToTreeList(ls)
+
+fun traversal (Empty) = NONE
+  | traversal (STree(p as (Puzzle(h, v, r)), [])) = 
+    let
+	val pp as Puzzle(ph, pv, pr) = oneUnknownOnPuzzle p
+	val ppp = possibleNextSteps pp
+    in
+	if ppp = [] then
+	    if sumOfAllElements(ph) = 405 then
+		SOME pp
+	    else
+		NONE
+
+	else if ppp = [pp]  then
+	    if sumOfAllElements(h) = 405 then
+		SOME pp
+	    else
+		NONE
+	else
+	    (ascii pp; traversal(STree(pp, listToTreeList(ppp))))
+		
+    end
+  | traversal (STree(p as (Puzzle(h, v, r)), (l as (STree(n as (Puzzle(_,_,_)), ns)))::ls)) = 
+    let
+	val nn = oneUnknownOnPuzzle n;
+	val nnn = possibleNextSteps nn;
+    in
+	if traversal l = NONE then
+	    traversal(STree(p, ls))
+	else
+	    traversal l
+		
+    end;
+    
+
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
 	 [6,8,9,2,3,7,0,4,0],
@@ -409,3 +454,37 @@ val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
 	 [0,4,0,7,6,1,9,3,8],[6,1,8,0,4,0,7,2,5],[3,9,7,5,2,8,0,6,0]];
 
 val p = Puzzle(h,v,r)
+
+
+val t = STree (p, []);
+
+
+val h2 = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 7, 1, 8, 9, 2, 3, 6],
+    [6, 8, 9, 2, 3, 7, 1, 4, 5], [8, 1, 5, 3, 6, 2, 9, 7, 4],
+    [2, 7, 4, 0, 9, 0, 6, 5, 3], [3, 9, 6, 5, 7, 4, 8, 1, 2],
+    [5, 4, 2, 6, 1, 8, 3, 9, 7], [7, 6, 1, 0, 4, 0, 5, 2, 8],
+    [9, 3, 8, 7, 2, 5, 4, 6, 1]];
+
+val v2 = updateHorizontalToVertical(v, h2);
+
+val r2 = updateHorizontalToSquare(h2);
+
+val p2 = Puzzle (h2, v2, r2);
+
+val t2 = STree(p2, []);
+
+
+
+val h3 = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 7, 1, 8, 9, 2, 3, 6],
+    [6, 8, 9, 2, 3, 7, 1, 4, 5], [8, 1, 5, 3, 6, 2, 9, 7, 4],
+    [2, 7, 4, 8, 9, 1, 6, 5, 3], [3, 9, 6, 5, 7, 4, 8, 1, 2],
+    [5, 4, 2, 6, 1, 8, 3, 9, 7], [7, 6, 1, 9, 4, 3, 5, 2, 8],
+    [9, 3, 8, 7, 2, 5, 4, 6, 1]];
+
+val v3 = updateHorizontalToVertical(v, h3);
+
+val r3 = updateHorizontalToSquare(h3);
+
+val p3 = Puzzle (h3, v3, r3);
+
+val t3 = STree(p3, []);
