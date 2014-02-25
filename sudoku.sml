@@ -487,34 +487,33 @@ fun traversal (Empty) = NONE
 	val pp as Puzzle(ph, pv, pr) = oneUnknownOnPuzzle p
 	val ppp = possibleNextSteps pp
     in
-	if ppp = [] then
-	    if sumOfAllElements(ph) = 405 then
-		SOME pp
-	    else
-		NONE
-
-	else if ppp = [pp]  then
+	if ppp = [] orelse ppp = [pp] then
 	    if sumOfAllElements(ph) = 405 then
 		SOME pp
 	    else
 		NONE
 	else
-	    (ascii pp; traversal(STree(pp, listToTreeList(ppp))))
-		
+	    ( traversal(STree(pp, listToTreeList(ppp))))
     end
-  | traversal (STree(p as (Puzzle(h, v, r)), (l as (STree(n as (Puzzle(_,_,_)), ns)))::ls)) = 
+  | traversal (STree(p as (Puzzle(h, v, r)), [l as (STree(lp as Puzzle(lph,_,_), []))])) = 
+    if possibleNextSteps lp = [] then
+	if sumOfAllElements(lph) = 405 then
+	    SOME lp
+	else
+	    NONE
+    else
+	traversal (l)
+
+  | traversal (STree(p as (Puzzle(h, v, r)), l::ls)) = 
     let
-	val nn = oneUnknownOnPuzzle n;
-	val nnn = possibleNextSteps nn;
+	val lResult = traversal l
     in
-	
-	if traversal l = NONE then
+	if lResult = NONE then
 	    traversal(STree(p, ls))
 	else
-	    traversal l
-		
-    end;
-    
+	    lResult
+    end
+
 (*
 (*CUSTOM*)
 
