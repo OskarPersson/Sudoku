@@ -168,18 +168,18 @@ fun updateHorizontalToSquare ([]) = []
 *)
 
 fun updateSquareToHorizontal ([]) = []
-  | updateSquareToHorizontal (r) = 
+  | updateSquareToHorizontal (s) = 
     let
 
-	val square1 = List.nth(r, 0)
-	val square2 = List.nth(r, 1)
-	val square3 = List.nth(r, 2)
-	val square4 = List.nth(r, 3)
-	val square5 = List.nth(r, 4)
-	val square6 = List.nth(r, 5)
-	val square7 = List.nth(r, 6)
-	val square8 = List.nth(r, 7)
-	val square9 = List.nth(r, 8)
+	val square1 = List.nth(s, 0)
+	val square2 = List.nth(s, 1)
+	val square3 = List.nth(s, 2)
+	val square4 = List.nth(s, 3)
+	val square5 = List.nth(s, 4)
+	val square6 = List.nth(s, 5)
+	val square7 = List.nth(s, 6)
+	val square8 = List.nth(s, 7)
+	val square9 = List.nth(s, 8)
 	
 
 	val row1 = List.take(square1, 3) @
@@ -241,7 +241,7 @@ fun ascii' ([]) = ""
 *)
 
 fun ascii (Puzzle([], _, _)) = ()
-  | ascii (Puzzle(h::hs, v, r)) =
+  | ascii (Puzzle(h::hs, v, s)) =
     let 
 	val lhs = List.length(hs)
     in
@@ -255,7 +255,7 @@ fun ascii (Puzzle([], _, _)) = ()
 	else
 	    print(ascii'(h) ^ "\n");
 	     
-	ascii(Puzzle(hs, v, r))
+	ascii(Puzzle(hs, v, s))
 	)
     end
 
@@ -334,31 +334,31 @@ fun notInSquare' (_, 0, acc) = acc
 fun notInSquare(l) = notInSquare'(l, 9, []);
 
 (*
-  squareWithLeastUnknowns' (r, acc, n)
+  squareWithLeastUnknowns' (s, acc, n)
   TYPE: int list list * int list * int -> int list * int
   PRE: true
-  POST: the first 3x3 square list in r with the lowest amount of unknown elements, and the position of it
+  POST: the first 3x3 square list in s with the lowest amount of unknown elements, and the position of it
 *)
 
 
 fun squareWithLeastUnknowns' ([], acc, n) = (acc, n)
-  | squareWithLeastUnknowns' (r::rs, acc, n) = 
-    if (List.length (List.filter (fn x => x = 0) r) < List.length (List.filter (fn x => x = 0) acc) andalso 
-       (List.exists (fn x => x = 0) r)) orelse List.length (List.filter (fn x => x = 0) acc) = 0  then
+  | squareWithLeastUnknowns' (s::ss, acc, n) = 
+    if (List.length (List.filter (fn x => x = 0) s) < List.length (List.filter (fn x => x = 0) acc) andalso 
+       (List.exists (fn x => x = 0) s)) orelse List.length (List.filter (fn x => x = 0) acc) = 0  then
 
-	squareWithLeastUnknowns' (rs, r, 9 - List.length(rs))
+	squareWithLeastUnknowns' (ss, s, 9 - List.length(ss))
     else
-	squareWithLeastUnknowns' (rs, acc, n);
+	squareWithLeastUnknowns' (ss, acc, n);
 
 (*
-  squareWithLeastUnknowns (r)
+  squareWithLeastUnknowns (s)
   TYPE: int list list -> int list * int
   PRE: true
-  POST: the first 3x3 square list in r with the lowest amount of unknown elements along with the position of it in r
+  POST: the first 3x3 square list in s with the lowest amount of unknown elements along with the position of it in s
 *)
 
 
-fun squareWithLeastUnknowns (r) = squareWithLeastUnknowns'(r, List.hd(r), 1);
+fun squareWithLeastUnknowns (s) = squareWithLeastUnknowns'(s, List.hd(s), 1);
 
 
 (* possibleSolutionsForSquare' (s, m)
@@ -395,8 +395,8 @@ fun possibleSolutionsForSquare (s, []) = []
 
 fun replaceAtPos' (l, new, 0) = 
     List.take(l, 0) @ [new]  @ List.drop(l, 0)
-| replaceAtPos' (l, new, pos) = 
-  List.take(l, pos-1) @ [new]  @ List.drop(l, pos)
+  | replaceAtPos' (l, new, pos) = 
+    List.take(l, pos-1) @ [new]  @ List.drop(l, pos)
 
 
 (* replaceAtPos (p, n, pos)
@@ -407,14 +407,14 @@ fun replaceAtPos' (l, new, 0) =
 *)
 
 fun replaceAtPos (_, [], _) = []
-  | replaceAtPos (p as Puzzle(h, v, r), n::ns, pos) = 
+  | replaceAtPos (p as Puzzle(h, v, s), n::ns, pos) = 
     let
-	val newS = (replaceAtPos'(r, n, pos))
+	val newS = (replaceAtPos'(s, n, pos))
 	val newH = updateSquareToHorizontal (newS)
 	val newV = updateHorizontalToVertical (v, newH)
     in
 	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
-	   Puzzle(h, v, r) <> Puzzle(newH, newV, newS) then
+	   Puzzle(h, v, s) <> Puzzle(newH, newV, newS) then
 	    Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
 	else
 	    replaceAtPos(p, ns, pos)
@@ -426,9 +426,9 @@ fun replaceAtPos (_, [], _) = []
    POST: possible next steps for the puzzle p
 *)
 
-fun possibleNextSteps (p as Puzzle(h, v, r)) = 
+fun possibleNextSteps (p as Puzzle(h, v, s)) = 
     let    
-	val (square, squareNumber) = squareWithLeastUnknowns (r)
+	val (square, squareNumber) = squareWithLeastUnknowns (s)
 	val missing = notInSquare (square)
 	val permutations = permute(missing)
 	val solutionsForSquare = possibleSolutionsForSquare(square, permutations)
@@ -443,17 +443,17 @@ fun possibleNextSteps (p as Puzzle(h, v, r)) =
          where there are only one unknown
 *)
 
-fun oneUnknownOnPuzzle (Puzzle(h, v, r)) = 
+fun oneUnknownOnPuzzle (Puzzle(h, v, s)) = 
     let
 	val newH = oneUnknown h;
 	val newV = oneUnknown (updateHorizontalToVertical(v, h))
-	val newR = oneUnknown (updateHorizontalToSquare (h))
+	val newS = oneUnknown (updateHorizontalToSquare (h))
 	val newH = oneUnknown (updateVerticalToHorizontal (h, newV))		      
     in
-	if Puzzle(newH, newV, newR) = Puzzle(h, v, r) then
-	    Puzzle(newH, newV, newR)
+	if Puzzle(newH, newV, newS) = Puzzle(h, v, s) then
+	    Puzzle(newH, newV, newS)
 	else
-	    oneUnknownOnPuzzle (Puzzle(newH, newV, newR))
+	    oneUnknownOnPuzzle (Puzzle(newH, newV, newS))
     end;
 
 (* sumOfAllElements l
@@ -482,9 +482,9 @@ fun listToTreeList [] = []
 *)
 
 fun traversal (Empty) = NONE
-  | traversal (STree(p as (Puzzle(h, v, r)), [])) = 
+  | traversal (STree(p as (Puzzle(h, v, s)), [])) = 
     let
-	val pp as Puzzle(ph, pv, pr) = oneUnknownOnPuzzle p
+	val pp as Puzzle(ph, pv, ps) = oneUnknownOnPuzzle p
 	val ppp = possibleNextSteps pp
     in
 	if ppp = [] orelse ppp = [pp] then
@@ -495,7 +495,7 @@ fun traversal (Empty) = NONE
 	else
 	    ( traversal(STree(pp, listToTreeList(ppp))))
     end
-  | traversal (STree(p as (Puzzle(h, v, r)), [l as (STree(lp as Puzzle(lph,_,_), []))])) = 
+  | traversal (STree(p as (Puzzle(h, v, s)), [l as (STree(lp as Puzzle(lph,_,_), []))])) = 
     if possibleNextSteps lp = [] then
 	if sumOfAllElements(lph) = 405 then
 	    SOME lp
@@ -504,7 +504,7 @@ fun traversal (Empty) = NONE
     else
 	traversal (l)
 
-  | traversal (STree(p as (Puzzle(h, v, r)), l::ls)) = 
+  | traversal (STree(p as (Puzzle(h, v, s)), l::ls)) = 
     let
 	val lResult = traversal l
     in
@@ -514,28 +514,7 @@ fun traversal (Empty) = NONE
 	    lResult
     end
 
-(*
-(*CUSTOM*)
 
-val h = [[0, 0, 3, 0, 0, 0, 7, 8, 9], 
-	 [0, 0, 7, 0, 0, 0, 2, 3, 6],
-	 [6, 8, 9, 0, 3, 7, 1, 4, 5],
-	 [8, 0, 0, 3, 6, 2, 9, 7, 4],
-	 [0, 7, 0, 8, 9, 1, 6, 5, 3], 
-	 [3, 9, 6, 5, 7, 4, 8, 1, 2],
-	 [5, 4, 2, 6, 1, 8, 3, 9, 7], 
-	 [7, 6, 1, 9, 4, 3, 5, 2, 8],
-	 [9, 3, 8, 7, 2, 5, 4, 6, 1]];
-
-val v = updateHorizontalToVertical (h, h);
-
-val r = updateHorizontalToSquare (h);
-
-
-val p = Puzzle(h, v, r);
-
-val t = STree(p, []);
-*)
 (* EASY
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
@@ -546,56 +525,6 @@ val h = [[0,2,0,4,5,6,7,8,9],
 	 [0,4,0,6,1,8,3,9,7],
 	 [7,6,1,0,4,0,5,2,8],
 	 [9,3,8,7,2,5,0,6,0]];
-
-val v = [[0,4,6,0,2,3,0,7,9],
-	 [2,5,8,0,7,9,4,6,3],
-	 [0,7,9,5,4,6,0,1,8],
-	 [4,0,2,3,0,5,6,0,7],
-	 [5,8,3,6,9,7,1,4,2],
-	 [6,0,7,2,0,4,8,0,5],
-	 [7,2,0,9,6,8,3,5,0],
-	 [8,3,4,7,5,0,9,2,6],
-	 [9,6,0,4,3,0,7,8,0]];
-
-val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
-	 [0,0,5,2,7,4,3,9,6],[3,6,2,0,9,0,5,7,4],[9,7,4,6,5,3,8,0,0],
-	 [0,4,0,7,6,1,9,3,8],[6,1,8,0,4,0,7,2,5],[3,9,7,5,2,8,0,6,0]];
-
-val p = Puzzle(h,v,r)
-
-
-val t = STree (p, []);*)
-(*
-
-val h2 = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 7, 1, 8, 9, 2, 3, 6],
-    [6, 8, 9, 2, 3, 7, 1, 4, 5], [8, 1, 5, 3, 6, 2, 9, 7, 4],
-    [2, 7, 4, 0, 9, 0, 6, 5, 3], [3, 9, 6, 5, 7, 4, 8, 1, 2],
-    [5, 4, 2, 6, 1, 8, 3, 9, 7], [7, 6, 1, 0, 4, 0, 5, 2, 8],
-    [9, 3, 8, 7, 2, 5, 4, 6, 1]];
-
-val v2 = updateHorizontalToVertical(v, h2);
-
-val r2 = updateHorizontalToSquare(h2);
-
-val p2 = Puzzle (h2, v2, r2);
-
-val t2 = STree(p2, []);
-
-
-
-val h3 = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 7, 1, 8, 9, 2, 3, 6],
-    [6, 8, 9, 2, 3, 7, 1, 4, 5], [8, 1, 5, 3, 6, 2, 9, 7, 4],
-    [2, 7, 4, 8, 9, 1, 6, 5, 3], [3, 9, 6, 5, 7, 4, 8, 1, 2],
-    [5, 4, 2, 6, 1, 8, 3, 9, 7], [7, 6, 1, 9, 4, 3, 5, 2, 8],
-    [9, 3, 8, 7, 2, 5, 4, 6, 1]];
-
-val v3 = updateHorizontalToVertical(v, h3);
-
-val r3 = updateHorizontalToSquare(h3);
-
-val p3 = Puzzle (h3, v3, r3);
-
-val t3 = STree(p3, []);
 *)
 
 
@@ -609,25 +538,6 @@ val h = [[0,0,0,8,4,0,0,0,9],
 	 [0,2,4,9,1,0,0,0,7],
 	 [9,0,0,0,0,0,5,0,0],
 	 [3,0,0,0,8,4,0,0,0]];
-
-val v = [[0,4,6,0,2,3,0,7,9],
-	 [2,5,8,0,7,9,4,6,3],
-	 [0,7,9,5,4,6,0,1,8],
-	 [4,0,2,3,0,5,6,0,7],
-	 [5,8,3,6,9,7,1,4,2],
-	 [6,0,7,2,0,4,8,0,5],
-	 [7,2,0,9,6,8,3,5,0],
-	 [8,3,4,7,5,0,9,2,6],
-	 [9,6,0,4,3,0,7,8,0]];
-
-val r = [[0,2,0,4,5,7,6,8,9],[4,5,6,0,8,0,2,3,7],[7,8,9,2,3,6,0,4,0],
-	 [0,0,5,2,7,4,3,9,6],[3,6,2,0,9,0,5,7,4],[9,7,4,6,5,3,8,0,0],
-	 [0,4,0,7,6,1,9,3,8],[6,1,8,0,4,0,7,2,5],[3,9,7,5,2,8,0,6,0]];
-
-val p = Puzzle(h,v,r)
-
-
-val t = STree (p, []);
 *)
 
 
@@ -644,9 +554,10 @@ val h = [[0,0,3,0,9,2,0,0,0],
 
 val v = updateHorizontalToVertical(h, h);
 
-val r  = updateHorizontalToSquare(h);
+val s  = updateHorizontalToSquare(h);
 
-val p = Puzzle(h,v,r)
+val p = Puzzle(h,v,s)
 
 val t = STree (p, []);
 
+fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); traversal t; print (Date.toString(Date.fromTimeLocal(Time.now ()))));
