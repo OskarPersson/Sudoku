@@ -576,6 +576,23 @@ val h = [[0,0,3,0,9,2,0,0,0],
 	 [0,3,0,0,8,0,0,0,9],
 	 [0,0,0,6,2,0,1,0,0]];
 
+(* INSANE *)
+
+(*
+val h = [[8,0,0,0,0,0,0,0,0],
+	 [0,0,3,6,0,0,0,0,0],
+	 [0,7,0,0,9,0,2,0,0],
+	 [0,5,0,0,0,7,0,0,0],
+	 [0,0,0,0,4,5,7,0,0],
+	 [0,0,0,1,0,0,0,3,0],
+	 [0,0,1,0,0,0,0,6,8],
+	 [0,0,8,5,0,0,0,1,0],
+	 [0,9,0,0,0,0,4,0,0]];*)
+
+
+
+val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => ref y) x)) h);
+
 val v = updateHorizontalToVertical(h, h);
 
 val s  = updateHorizontalToSquare(h);
@@ -585,3 +602,12 @@ val p = Puzzle(h,v,s)
 val t = STree (p, []);
 
 fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); traversal t; print (Date.toString(Date.fromTimeLocal(Time.now ()))));
+
+
+
+fun diff t = 
+    let
+	val now = Time.toMilliseconds(Time.now());
+    in
+	(traversal t; print (Int.toString((Time.toMilliseconds(Time.now())) - now) ^ " milliseconds \n"))
+    end
