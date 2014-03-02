@@ -5,7 +5,8 @@ PolyML.print_depth 1000000000;
                               An unknown element is represented by 0
    REPRESENTATION INVARIANT: 
 *)
-datatype Sudoku = Puzzle of int list list * int list list * int list list;
+
+datatype Sudoku = Puzzle of int vector vector * int vector vector * int vector vector;
 
 (* REPRESENTATION CONVENTION: Represents a tree of sudoku puzzles where the first element is the node and
                               the second element represents the subtrees
@@ -14,25 +15,40 @@ datatype Sudoku = Puzzle of int list list * int list list * int list list;
 datatype SudokuTree = Empty
 	 | STree of Sudoku * SudokuTree list;
 
-(* sumOfElements l
-   TYPE: int list -> int
+(* sumOfElements v, i
+   TYPE: int vector * int -> int
    PRE: true
-   POST: sum of all elements in l
+   POST: sum of all elements in v, starting at index i
 *)
 
-fun sumOfElements [] = 0
-  | sumOfElements (l::ls) = l + sumOfElements ls;
+fun sumOfElements' (v, i) = 
+    if i = (Vector.length v)-1 then
+	Vector.sub(v, i)
+    else
+	Vector.sub(v, i) + sumOfElements'(v, i+1);
 
-
-(* replaceOneUnknown (l, n)
-   TYPE: int list * int -> int list
+(* sumOfElements v
+   TYPE: int vector -> int
    PRE: true
-   POST: replaces the 0 in l with n
+   POST: sum of all elements in v
 *)
 
-fun replaceOneUnknown ([], _) = []
-  | replaceOneUnknown (0::ls, new) = new :: (replaceOneUnknown (ls, new))
-  | replaceOneUnknown (l::ls, new) = l :: (replaceOneUnknown(ls, new));
+fun sumOfElements (v) = sumOfElements'(v, 0);
+
+
+(* replaceOneUnknown (v, n)
+   TYPE: int vector * int -> int vector
+   PRE: true
+   POST: replaces the 0 in v with n
+*)
+
+fun replaceOneUnknown (v, new) = 
+    let
+	val (i, j) = valOf((Vector.findi (fn (x, y) => y = 0) v))
+    in
+	Vector.update(v, i, new)
+    end;
+
 
 (* oneUnknown' l
    TYPE: int list list -> int list list
