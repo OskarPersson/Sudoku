@@ -95,8 +95,11 @@ POST: if v is the vertical representation then the horizontal representation,
       else if v is the horizontal representation then the vertical representation
 *)
 
-fun verticalHorizontalConverter' (v, 0) = [(Vector.foldr (fn (x,y) => Vector.sub(x, 0)::y) [] v)]
-  | verticalHorizontalConverter' (v, c) = verticalHorizontalConverter'(v, c-1) @ [(Vector.foldr (fn (x,y) => Vector.sub(x, c)::y) [] v)];
+fun verticalHorizontalConverter' (v, 0) = 
+    [(Vector.foldr (fn (x,y) => Vector.sub(x, 0)::y) [] v)]
+  | verticalHorizontalConverter' (v, c) = 
+    verticalHorizontalConverter'(v, c-1) @ 
+    [(Vector.foldr (fn (x,y) => Vector.sub(x, c)::y) [] v)];
     
 
 (*
@@ -107,7 +110,9 @@ POST: if v is the vertical representation then the horizontal representation,
       else if v is the horizontal representation then the vertical representation
 *)
 
-fun verticalHorizontalConverter (v) = Vector.fromList(List.map (fn x => Vector.fromList x) (verticalHorizontalConverter' (v, (Vector.length (v)) - 1)));
+fun verticalHorizontalConverter (v) = 
+    Vector.fromList(List.map (fn x => Vector.fromList x) 
+			     (verticalHorizontalConverter' (v, (Vector.length (v)) - 1)));
 
 
 (* updateHorizontalToSquare l
