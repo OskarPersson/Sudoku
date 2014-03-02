@@ -15,7 +15,7 @@ datatype Sudoku = Puzzle of int vector vector * int vector vector * int vector v
 datatype SudokuTree = Empty
 	 | STree of Sudoku * SudokuTree list;
 
-(* sumOfElements v, i
+(* sumOfElements' v, i
    TYPE: int vector * int -> int
    PRE: true
    POST: sum of all elements in v, starting at index i
@@ -50,33 +50,41 @@ fun replaceOneUnknown (v, new) =
     end;
 
 
-(* oneUnknown' l
-   TYPE: int list list -> int list list
-   PRE: l only contains unique numbers 0-9. With maximum of 9 elements
-   POST: replaces the 0 in l with the missing element of 1-9
+(* oneUnknown' v
+   TYPE: int vector -> int vector
+   PRE: v only contains unique numbers 0-9. With maximum of 9 elements
+   POST: replaces the 0 in v with the missing element of 1-9
 *)
 
-fun oneUnknown' [] = [] 
-  | oneUnknown' (l::ls) = 
-    if List.length (List.filter (fn x => x = 0) l) = 1 then
-	(replaceOneUnknown (l, 45 - sumOfElements l)) :: (oneUnknown' ls)
-    else
-	l :: (oneUnknown' ls);
-
-(* oneUnknown l
-   TYPE: int list list -> int list list
-   PRE: l only contains unique numbers 0-9. With maximum of 9 elements
-   POST: replaces the 0 in l with the missing element of 1-9
-*)
-
-fun oneUnknown l = 
+fun oneUnknown' v = 
     let
-	val newL = oneUnknown' l
+	val a = (Vector.findi (fn (x, y) => y = 0) v)
+	val (i, j) = if a <> NONE then
+			 valOf(Vector.findi (fn (x, y) => y = 0) v)
+		     else
+			 (0, 0)
+	val f = Vector.findi (fn (x, y) => y = 0 andalso x > i) v
     in
-	if newL = l then
-	    l
+	if a <> NONE andalso f = NONE then
+	    Vector.update(v, i, 45 - sumOfElements v)
 	else
-	    oneUnknown newL
+	    v
+    end;
+
+(* oneUnknown v
+   TYPE: int vector -> int vector
+   PRE: v only contains vectors with unique numbers 0-9. With maximum of 9 elements
+   POST: replaces the 0s in every vector in v with the missing element of 1-9
+*)
+
+fun oneUnknown v = 
+    let
+	val newV = Vector.map (fn x => oneUnknown' x) v
+    in
+	if newV = v then
+	    v
+	else
+	    oneUnknown newV
     end;
 
 (*
