@@ -88,48 +88,26 @@ fun oneUnknown v =
     end;
 
 (*
-vToH (v, r)
-TYPE: 'a list list * int -> 'a list
+verticalHorizontalConverter' (v, c)
+TYPE: 'a vector vector * int -> 'a list list
 PRE: true
-POST: a list of elements on position r in each of the lists in v
+POST: if v is the vertical representation then the horizontal representation,
+      else if v is the horizontal representation then the vertical representation
 *)
 
-fun vToH ([], _) = []
-  | vToH (v::vs, row) =
-    [List.nth(v, row-1)] @ vToH(vs, row);
+fun verticalHorizontalConverter' (v, 0) = [(Vector.foldr (fn (x,y) => Vector.sub(x, 0)::y) [] v)]
+  | verticalHorizontalConverter' (v, c) = verticalHorizontalConverter'(v, c-1) @ [(Vector.foldr (fn (x,y) => Vector.sub(x, c)::y) [] v)];
+    
 
 (*
-updateVerticalToHorizontal (h,v)
-TYPE: 'a list * 'b list list -> 'b list list
+verticalHorizontalConverter (v)
+TYPE: 'a vector vector -> 'a vector vector
 PRE: true
-POST: h updated with the corresponding elements in v
+POST: if v is the vertical representation then the horizontal representation,
+      else if v is the horizontal representation then the vertical representation
 *)
 
-fun updateVerticalToHorizontal ([], v) = []
-  | updateVerticalToHorizontal (h::hs, v) = 
-    vToH(v, 9 - List.length(hs)) :: updateVerticalToHorizontal(hs, v);
-
-(* hToV (h, r)
-TYPE: 'a list list * int -> 'a list
-PRE: true
-POST: a list of elements on position r in each of the lists in h
-*)
-
-fun hToV ([], _) = []
-  | hToV (h::hs, row) =
-    [List.nth(h, row-1)] @ hToV(hs, row);
-
-(*
-updateHorizontalToVertical (v,h)
-TYPE: 'a list * 'b list list -> 'b list list
-PRE: true
-POST: v updated with the corresponding elements in h
-*)
-
-fun updateHorizontalToVertical([], h) = []
-  | updateHorizontalToVertical (v::vs, h) = 
-    hToV(h, 9 - List.length(vs)) :: updateHorizontalToVertical(vs, h);
-
+fun verticalHorizontalConverter (v) = Vector.fromList(List.map (fn x => Vector.fromList x) (verticalHorizontalConverter' (v, (Vector.length (v)) - 1)));
 
 
 (* updateHorizontalToSquare l
