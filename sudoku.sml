@@ -515,6 +515,14 @@ fun traversal (Empty) = NONE
     end
 
 
+(* solve s 
+TYPE: Sudoku -> unit
+PRE: true
+POST: none
+*)
+fun solve s =  ascii(valOf(traversal(STree(s,[]))))
+
+
 (* EASY
 val h = [[0,2,0,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
@@ -560,4 +568,4 @@ val p = Puzzle(h,v,s)
 
 val t = STree (p, []);
 
-fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); traversal t; print (Date.toString(Date.fromTimeLocal(Time.now ()))));
+fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); solve t; print ("\n" ^ Date.toString(Date.fromTimeLocal(Time.now ()))));
