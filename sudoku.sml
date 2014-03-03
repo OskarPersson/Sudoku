@@ -178,51 +178,56 @@ fun squareHorizontalConverter v =
 		      middleRight :: bottomLeft :: bottomMiddle :: [bottomRight]))
     end;
 
-(* ascii' l
-   TYPE: int list -> string
-   PRE: l contains 9 elements
-   POST: string representation of l
+(*
+ascii p
+TYPE: Sudoku -> unit vector
+PRE: p is a well defined Sudoku
+POST: (none)
+SIDE-EFFECTS: prints the ascii representation of p
 *)
 
-fun ascii' ([]) = ""
-  | ascii' (h::hs) =
+
+fun ascii (Puzzle(h, v, r)) = 
     let
-        val lhs = length(hs)
-    in
-        if 9 - lhs = 1 then
-            "| " ^ Int.toString(h) ^ " " ^ ascii'(hs)
-        else if 9 - lhs = 3 orelse 9 - lhs = 6 orelse 9 - lhs = 9 then
-            Int.toString(h) ^ " | " ^ ascii'(hs)
-	else
-	    Int.toString(h) ^ " " ^ ascii'(hs)
-    end;
 
-(* ascii s
-   TYPE: Sudoku -> unit
-   PRE: l contains 9 lists, with 9 elements each
-   POST: ()
-   SIDE-EFFECTS: prints the ascii representation of s
-*)
+	(*
+        ascii'' (i,x)
+        TYPE: int * int vector -> string
+        PRE: true
+        POST: x as a string
+        *)
 
-fun ascii (Puzzle([], _, _)) = ()
-  | ascii (Puzzle(h::hs, v, s)) =
-    let 
-	val lhs = List.length(hs)
+	fun ascii'' (i, x) =
+	    if i = 0 then
+		"| " ^ Int.toString(Vector.sub(x, i)) ^ " " ^ ascii''(i+1, x)
+            else if i = 2 orelse i = 5 then
+		Int.toString(Vector.sub(x, i)) ^ " | " ^ ascii''(i+1, x)
+	    else if i = (Vector.length (x)) -1 then
+		Int.toString(Vector.sub(x, i)) ^ " | "
+	    else
+		Int.toString(Vector.sub(x, i)) ^ " " ^ ascii''(i+1, x)
+
+        (*
+        ascii' (i,x)
+        TYPE: int * int vector -> unit
+        PRE: true
+        POST: x as a string
+        *)
+
+	fun ascii' (i, x) = 
+
+	    if i = 0 then
+		(print("+-----------------------+\n");
+		 print(ascii''(0, x) ^ "\n"))
+	    else if i = 8 orelse i = 2 orelse i = 5 then
+		(print(ascii''(0, x) ^ "\n");
+		 print("+-----------------------+\n"))	
+	    else			
+		print(ascii''(0, x) ^ "\n")
+			 
     in
-	(
-	if 9 - lhs = 1 then
-	    (print("+-----------------------+\n");
-	     print(ascii'(h) ^ "\n"))
-	else if 9 - lhs = 9 orelse 9 - lhs = 3 orelse 9 - lhs = 6  then
-	    (print(ascii'(h) ^ "\n");
-	     print("+-----------------------+\n"))
-	else
-	    print(ascii'(h) ^ "\n");
-	     
-	ascii(Puzzle(hs, v, s))
-	)
+	Vector.mapi ascii' h
     end
-
 (* duplicatesExists' l
    TYPE: int list -> bool
    PRE: true
@@ -531,11 +536,11 @@ val h = [[8,0,0,0,0,0,0,0,0],
 
 
 
-val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => ref y) x)) h);
+val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => y) x)) h);
 
-val v = updateHorizontalToVertical(h, h);
+val v = verticalHorizontalConverter(h);
 
-val s  = updateHorizontalToSquare(h);
+val s  = squareHorizontalConverter(h);
 
 val p = Puzzle(h,v,s)
 
