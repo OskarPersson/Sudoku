@@ -348,13 +348,6 @@ fun notInSquare' (_, 0, acc) = acc
 fun notInSquare(v) = Vector.fromList(notInSquare'(v, 9, []));
 
 (*
-  squareWithLeastUnknowns' (s, acc, n)
-  TYPE: int list list * int list * int -> int list * int
-  PRE: true
-  POST: the first 3x3 square list in s with the lowest amount of unknown elements, and the position of it
-*)
-
-(*
   vectorFilter' f (v, i)
   TYPE: ('a -> bool) -> 'a vector * int -> 'a list
   PRE: true
@@ -376,22 +369,34 @@ fun vectorFilter' _ (_, 0) = []
 
 fun vectorFilter f v = Vector.fromList(vectorFilter' f (v, Vector.length(v)-1))
 
+(*
+  squareWithLeastUnknowns' (v, i, acc, n)
+  TYPE: int vector vector * int * int vector * int -> int vector * int
+  PRE: true
+  POST: the first 3x3 square vector in v with the lowest amount of unknown elements,
+        and the position of it
+*)
+
+
 fun squareWithLeastUnknowns' (v, i, acc, n) = 
     if i < 0 then
 	(acc, n)
     else
-	if (Vector.length (vectorFilter (fn x => x = 0) (Vector.sub(v, i))) < Vector.length (vectorFilter (fn x => x = 0) acc) andalso 
-	    (Vector.exists (fn x => x = 0) (Vector.sub(v, i)))) orelse Vector.length (vectorFilter (fn x => x = 0) acc) = 0  then
+	if (Vector.length (vectorFilter (fn x => x = 0) (Vector.sub(v, i))) < 
+	    Vector.length (vectorFilter (fn x => x = 0) acc) andalso 
+	    (Vector.exists (fn x => x = 0) (Vector.sub(v, i)))) orelse 
+	   Vector.length (vectorFilter (fn x => x = 0) acc) = 0  then
 	    
 	    squareWithLeastUnknowns' (v, i-1, Vector.sub(v, i), i)
 	else
 	    squareWithLeastUnknowns' (v, i-1, acc, n);
 
 (*
-  squareWithLeastUnknowns (s)
-  TYPE: int list list -> int list * int
+  squareWithLeastUnknowns (v)
+  TYPE: int vector vector -> int vector * int
   PRE: true
-  POST: the first 3x3 square list in s with the lowest amount of unknown elements along with the position of it in s
+  POST: the first 3x3 square vector in v with the lowest amount of unknown elements
+        along with the position of it in v
 *)
 
 
