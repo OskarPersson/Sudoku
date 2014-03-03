@@ -498,14 +498,13 @@ fun oneUnknownOnPuzzle (Puzzle(h, v, s)) =
 	    oneUnknownOnPuzzle (Puzzle(newH, newV, newS))
     end;
 
-(* sumOfAllElements l
-   TYPE: int list list -> int
+(* sumOfAllElements v
+   TYPE: int vector vector -> int
    PRE: true
-   POST: sum of all elements in all lists in l
+   POST: sum of all elements in all vectors in v
 *)
 
-fun sumOfAllElements [] = 0 
-  | sumOfAllElements (l::ls) = sumOfElements(l) + sumOfAllElements(ls);
+fun sumOfAllElements v = Vector.foldr (fn (x,y) => (sumOfElements x)+y) 0 v;
 
 (* listToTreeList l
    TYPE: Sudoku list -> SudokuTree list
