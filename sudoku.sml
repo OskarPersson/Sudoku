@@ -326,25 +326,26 @@ fun permute v =
 (* ======================================================================================== *)
 
 
-(* notInSquare' (l, n, acc)
-   TYPE: int list * int * int list -> int list
+(* notInSquare' (v, n, acc)
+   TYPE: int vector * int * int list -> int list
    PRE: true
-   POST: numbers 1-9 that are missing in l
+   POST: numbers 1-9 that are missing in v
 *)
 
 fun notInSquare' (_, 0, acc) = acc
-  | notInSquare' (l, n, acc) = if (List.exists (fn x => x = n) l)  = false then
-				  notInSquare'(l, n-1, n::acc)
-			      else
-				  notInSquare'(l, n-1, acc)
+  | notInSquare' (v, n, acc) = 
+    if (Vector.exists (fn x => x = n) (v))  = false then
+	notInSquare'(v, n-1, n::acc)
+    else
+	notInSquare'(v, n-1, acc)
 
-(* notInSquare (l)
-   TYPE: int list -> int list
+(* notInSquare (v)
+   TYPE: int vector -> int vector
    PRE: true
-   POST: numbers 1-9 that are missing in l
+   POST: numbers 1-9 that are missing in v
 *)
 
-fun notInSquare(l) = notInSquare'(l, 9, []);
+fun notInSquare(v) = Vector.fromList(notInSquare'(v, 9, []));
 
 (*
   squareWithLeastUnknowns' (s, acc, n)
