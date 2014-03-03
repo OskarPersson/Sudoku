@@ -13,7 +13,7 @@ datatype Sudoku = Puzzle of int vector vector * int vector vector * int vector v
    REPRESENTATION INVARIANT:
 *)
 datatype SudokuTree = Empty
-	 | STree of Sudoku * SudokuTree list;
+	 | STree of Sudoku * SudokuTree vector;
 
 (* sumOfElements' v, i
    TYPE: int vector * int -> int
