@@ -450,42 +450,44 @@ fun possibleSolutionsForSquare' (s, m, i) =
 
 fun possibleSolutionsForSquare (s, m) = Vector.fromList(possibleSolutionsForSquare'(s, m, Vector.length(m)-1));
 
-
-(* replaceAtPos' (l, n, pos)
-   TYPE: 'a list * 'a * int -> 'a list
-   PRE: true
-   POST: l with the element at position pos replaced with n
-*)
-
-fun replaceAtPos' (l, new, 0) = 
-    List.take(l, 0) @ [new]  @ List.drop(l, 0)
-  | replaceAtPos' (l, new, pos) = 
-    List.take(l, pos-1) @ [new]  @ List.drop(l, pos)
-
-
-(* replaceAtPos (p, n, pos)
-   TYPE: Sudoku * int list list * int -> Sudoku list
+(* replaceAtPos' (p, n, i, pos)
+   TYPE: Sudoku * int vector vector * int * int -> Sudoku list
    PRE: true
    POST: A list with puzzles where the square at position pos in p
-         has been replaced with each list in n
+         has been replaced with each vector in n
 *)
 
-fun replaceAtPos (_, [], _) = []
-  | replaceAtPos (p as Puzzle(h, v, s), n::ns, pos) = 
+fun replaceAtPos' (p as Puzzle(h, v, s), n, i, pos) = 
     let
-	val newS = (replaceAtPos'(s, n, pos))
-	val newH = updateSquareToHorizontal (newS)
-	val newV = updateHorizontalToVertical (v, newH)
+	val newS = (Vector.update(s, pos, Vector.sub(n, i)))
+	val newH = squareHorizontalConverter (newS)
+	val newV = verticalHorizontalConverter (newH)
     in
-	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
-	   Puzzle(h, v, s) <> Puzzle(newH, newV, newS) then
-	    Puzzle(newH, newV, newS) :: replaceAtPos(p, ns, pos)
+	if i = 0 then
+	    if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
+	       Puzzle(h, v, s) <> Puzzle(newH, newV, newS) then
+		[Puzzle(newH, newV, newS)]
+	    else
+		[]
 	else
-	    replaceAtPos(p, ns, pos)
+	    if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
+	       Puzzle(h, v, s) <> Puzzle(newH, newV, newS) then
+		Puzzle(newH, newV, newS) :: replaceAtPos'(p, n, i-1, pos)
+	    else
+		replaceAtPos'(p, n, i-1, pos)
     end;
 
+(* replaceAtPos (p, n, pos)
+   TYPE: Sudoku * int vector vector * int -> Sudoku vector
+   PRE: true
+   POST: A vector with puzzles where the square at position pos in p
+         has been replaced with each vector in n
+*)
+
+fun replaceAtPos (p, n, pos) = Vector.fromList(replaceAtPos'(p, n, Vector.length(n)-1, pos-1))
+
 (* possibleNextSteps p
-   TYPE: Sudoku -> Sudoku list
+   TYPE: Sudoku -> Sudoku vector
    PRE: true
    POST: possible next steps for the puzzle p
 *)
@@ -510,9 +512,9 @@ fun possibleNextSteps (p as Puzzle(h, v, s)) =
 fun oneUnknownOnPuzzle (Puzzle(h, v, s)) = 
     let
 	val newH = oneUnknown h;
-	val newV = oneUnknown (updateHorizontalToVertical(v, h))
-	val newS = oneUnknown (updateHorizontalToSquare (h))
-	val newH = oneUnknown (updateVerticalToHorizontal (h, newV))		      
+	val newV = oneUnknown (verticalHorizontalConverter(h))
+	val newS = oneUnknown (squareHorizontalConverter(h))
+	val newH = oneUnknown (verticalHorizontalConverter (newV))		      
     in
 	if Puzzle(newH, newV, newS) = Puzzle(h, v, s) then
 	    Puzzle(newH, newV, newS)
@@ -528,15 +530,13 @@ fun oneUnknownOnPuzzle (Puzzle(h, v, s)) =
 
 fun sumOfAllElements v = Vector.foldr (fn (x,y) => (sumOfElements x)+y) 0 v;
 
-(* listToTreeList l
-   TYPE: Sudoku list -> SudokuTree list
+(* vectorToTreeVector v
+   TYPE: Sudoku vector -> SudokuTree vector
    PRE: true
-   POST: a list of trees where the elements in l are the nodes in each tree
+   POST: a vector of trees where the elements in v are the nodes in each tree
 *)
 
-fun listToTreeList [] = []
-  | listToTreeList (l::ls) = 
-    STree(l, []) :: listToTreeList(ls)
+fun vectorToTreeVector v = Vector.map (fn x => STree(x, Vector.fromList([]))) v
 
 (* traversal s
    TYPE: SudokuTree -> Sudoku option
@@ -638,7 +638,7 @@ val s  = squareHorizontalConverter(h);
 
 val p = Puzzle(h,v,s)
 
-val t = STree (p, []);
+val t = STree (p, Vector.fromList([]));
 
 fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); traversal t; print (Date.toString(Date.fromTimeLocal(Time.now ()))));
 
