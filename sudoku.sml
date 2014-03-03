@@ -228,32 +228,61 @@ fun ascii (Puzzle(h, v, r)) =
     in
 	Vector.mapi ascii' h
     end
-(* duplicatesExists' l
-   TYPE: int list -> bool
+
+(* find (i, x, v)
+   TYPE: int * int * int vector -> bool
    PRE: true
-   POST: true if duplicates exists in l, false otherwise
+   POST: true if x are on multiple positions in v and not 0,
+         false otherwise
 *)
 
-fun duplicatesExists' [] = false
-  | duplicatesExists' (l::ls) = 
-    if List.exists (fn x => x = l andalso x <> 0 ) ls then
-	true
-    else
-	duplicatesExists' ls;
+fun find (i, x, v) =
+    let
+	val result = Vector.findi (fn (j, y) => y <> 0 andalso i<>j andalso x=y ) v
+    in
+	if result = NONE then
+	    false
+	else
+	    true
+    end;
 
-
-(* duplicatesExists l
-   TYPE: int list -> bool
+(* duplicatesExists'' v
+   TYPE: int vector -> bool
    PRE: true
-   POST: true if duplicates exists in l, false otherwise
+   POST: true if an element that is not 0 are on multiple positions in v,
+         false otherwise
 *)
 
-fun duplicatesExists ([]) = false
-  | duplicatesExists (l::ls) = 
-    if duplicatesExists'(l) then
+fun duplicatesExists'' (v) = 
+    let
+	val result = Vector.mapi (fn (i,x) => find (i,x,v)) v
+    in
+	Vector.exists (fn x => x = true) result
+    end;
+	    
+(* duplicatesExists' (i,v)
+   TYPE: int * int vector vector -> bool
+   PRE: true
+   POST: true if an element appears more than once in a single vector in v,
+         false otherwise
+*)
+	
+fun duplicatesExists' (i,v) = 
+    if i = Vector.length v then
+	false
+    else if duplicatesExists'' (Vector.sub(v, i)) then
 	true
     else
-	duplicatesExists ls;
+	duplicatesExists' (i+1, v);
+
+(* duplicatesExists v
+   TYPE: int vector vector -> bool
+   PRE: true
+   POST: true if an element appears more than once in a single vector in v,
+         false otherwise
+*)
+
+fun duplicatesExists v = duplicatesExists' (0, v);
 
 
 (* ====================== http://stackoverflow.com/a/5631165/1523238 ====================== *)
