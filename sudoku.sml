@@ -285,7 +285,7 @@ fun duplicatesExists' (i,v) =
 fun duplicatesExists v = duplicatesExists' (0, v);
 
 
-(* ====================== http://stackoverflow.com/a/5631165/1523238 ====================== *)
+(* ====== http://stackoverflow.com/a/5631165/1523238  (converted from lists to vectors)  ====== *)
 
 (* interleave x l
    TYPE: 'a -> 'a list -> 'a list list
@@ -293,20 +293,35 @@ fun duplicatesExists v = duplicatesExists' (0, v);
    POST: a list of lists where x is moving one step through l each time
 *)
 
-
 fun interleave x [] = [[x]]
   | interleave x (h::t) =
     (x::h::t)::(List.map(fn l => h::l) (interleave x t))
 
-(* permute l
-   TYPE: 'a list -> 'a list list
-   PRE: true
-   POST: permutations of l
-   EXAMPLE: permute [1,2,3] = [[1, 2, 3], [2, 1, 3], [2, 3, 1], [1, 3, 2], [3, 1, 2], [3, 2, 1]] 
+(* permute' (i, v)
+   TYPE: int * 'a vector -> 'a list list
+   PRE: i is length of v - 1
+   POST: permutations of v
+   EXAMPLE: permute' (2, Vector.fromList([1,2,3])) = 
+            [[1, 2, 3], [2, 1, 3], [2, 3, 1], [1, 3, 2], [3, 1, 2], [3, 2, 1]] 
 *)
-		   
-fun permute nil = [[]]
-  | permute (h::t) = List.concat( List.map (fn l => interleave h l) (permute t))
+
+fun permute' (i, v) = 
+    if i < 0 then
+	[[]]
+    else
+	List.concat( List.map (fn l => interleave (Vector.sub(v, i)) l) (permute' (i-1, v)))
+
+(* permute v
+   TYPE: 'a vector -> 'a vector vector
+   PRE: true
+   POST: permutations of v
+   EXAMPLE: permute (Vector.fromList([1,2,3])) = 
+            fromList[fromList[3, 2, 1], fromList[2, 3, 1], fromList[2, 1, 3],
+            fromList[3, 1, 2], fromList[1, 3, 2], fromList[1, 2, 3]]
+*)
+
+fun permute v = 
+    Vector.fromList (List.map (fn l => Vector.fromList l) (permute' ((Vector.length v)-1, v)))
 
 (* ======================================================================================== *)
 
