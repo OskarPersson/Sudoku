@@ -403,30 +403,52 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, Vector.length(v) -1, Vector.sub(v, 0), 1);
 
 
-(* possibleSolutionsForSquare' (s, m)
-   TYPE: int list * int list -> int list
+(* possibleSolutionsForSquare'' (v1, i, v2, j)
+   TYPE: int vector * int * int vector * int -> int vector
    PRE: true
-   POST: s with each zero replaced with the next element in m
-   EXAMPLE: possibleSolutionsForSquare'([1,0,0,4,5,6,7,8,9], [2,3]) = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+   POST: v1 with each zero replaced with an element in v2
+   EXAMPLE: possibleSolutionsForSquare'' (Vector.fromList([1,0,3,0,5]), 0, Vector.fromList([2,4]), 0) = Vector.fromList[1, 2, 3, 4, 5]
 *)
 
-fun possibleSolutionsForSquare' ([], _) = []
-  | possibleSolutionsForSquare' (l, []) = l
-  | possibleSolutionsForSquare' (l::ls, m::ms) = 
-    if l = 0 then
-	m :: possibleSolutionsForSquare'(ls, ms)
+
+fun possibleSolutionsForSquare'' (v1, i, v2, j) = 
+    let
+	val result = Vector.findi (fn (ind, x) => x=0 andalso ind >= i) v1
+				  
+	val (index, value) = if result <> NONE then
+				 valOf(result)
+			     else
+				 (~1, ~1)
+    in
+	if index <> ~1 andalso j <= (Vector.length(v2)-1) then
+	    possibleSolutionsForSquare''(Vector.update(v1, index, Vector.sub(v2, j)), index+1, v2, j+1)
+	else
+	    v1
+    end;
+
+(* possibleSolutionsForSquare' (s, m, i)
+   TYPE: int vector * int vector vector * int -> int vector list
+   PRE: true
+   POST: possible solutions for s
+   EXAMPLE: possibleSolutionsForSquare' (Vector.fromList([1,0,3,0,5]), Vector.fromList([Vector.fromList([4,2]), Vector.fromList([2,4])]), 1) = 
+            [Vector.fromList[1, 2, 3, 4, 5], Vector.fromList[1, 4, 3, 2, 5]]
+*)
+
+fun possibleSolutionsForSquare' (s, m, i) = 
+    if i = 0 then
+	[possibleSolutionsForSquare'' (s, 0, Vector.sub(m, 0), 0)]
     else
-	l :: possibleSolutionsForSquare'(ls, m::ms)
+	possibleSolutionsForSquare'' (s, 0, Vector.sub(m, i), 0) :: possibleSolutionsForSquare' (s, m, i-1);
 
-(* possibleSolutionsForSquare (s, missing)
-   TYPE: int list * int list list -> int list list
+(* possibleSolutionsForSquare (s, m)
+   TYPE: int vector * int vector vector -> int vector vector
    PRE: true
-   POST: possible solutions for the square s
-   EXAMPLE: possibleSolutionsForSquare([1,0,0,4,5,6,7,8,9], [[2,3], [3,2]]) = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 2, 4, 5, 6, 7, 8, 9]]
+   POST: possible solutions for s
+   EXAMPLE: possibleSolutionsForSquare (Vector.fromList([1,0,3,0,5]), Vector.fromList([Vector.fromList([4,2]), Vector.fromList([2,4])])) = 
+            Vector.fromList[Vector.fromList[1, 2, 3, 4, 5], Vector.fromList[1, 4, 3, 2, 5]]
 *)
 
-fun possibleSolutionsForSquare (s, []) = []
-  | possibleSolutionsForSquare (s, m::ms) = possibleSolutionsForSquare'(s, m) :: possibleSolutionsForSquare (s, ms);
+fun possibleSolutionsForSquare (s, m) = Vector.fromList(possibleSolutionsForSquare'(s, m, Vector.length(m)-1));
 
 
 (* replaceAtPos' (l, n, pos)
