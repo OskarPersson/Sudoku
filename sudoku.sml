@@ -115,111 +115,68 @@ fun verticalHorizontalConverter (v) =
 			     (verticalHorizontalConverter' (v, (Vector.length (v)) - 1)));
 
 
-(* updateHorizontalToSquare l
-   TYPE: 'a list list -> 'a list list
-   PRE: l contains 9 lists, with 9 elements each
-   POST: the lists divided into 3x3-squares
+(* squareHorizontalConverter v
+   TYPE: 'a vector vector -> 'a vector vector
+   PRE: v contains 9 lists, with 9 elements each
+   POST: if v is the square representation then the horizontal representation,
+         else if v is the horizontal representation then the square representation
 *)
 
-fun updateHorizontalToSquare ([]) = []
-  | updateHorizontalToSquare (h) = 
+fun squareHorizontalConverter v = 
     let
 
-	val row1 = List.nth(h, 0)
-	val row2 = List.nth(h, 1)
-	val row3 = List.nth(h, 2)
-	val row4 = List.nth(h, 3)
-	val row5 = List.nth(h, 4)
-	val row6 = List.nth(h, 5)
-	val row7 = List.nth(h, 6)
-	val row8 = List.nth(h, 7)
-	val row9 = List.nth(h, 8)
-	
+	val row1 = Vector.sub(v, 0)
+	val row2 = Vector.sub(v, 1)
+	val row3 = Vector.sub(v, 2)
+	val row4 = Vector.sub(v, 3)
+	val row5 = Vector.sub(v, 4)
+	val row6 = Vector.sub(v, 5)
+	val row7 = Vector.sub(v, 6)
+	val row8 = Vector.sub(v, 7)
+	val row9 = Vector.sub(v, 8)
+			     
 
-	val topLeft = List.take(row1, 3) @
-		      List.take(row2, 3) @
-		      List.take(row3, 3)
-	val topMiddle = List.take(List.drop(row1, 3), 3) @ 
-			List.take(List.drop(row2, 3), 3) @
-			List.take(List.drop(row3, 3), 3)
-	val topRight = List.drop(row1, 6) @
-		       List.drop(row2, 6) @
-		       List.drop(row3, 6)
-	val middleLeft = List.take(row4, 3) @
-			 List.take(row5, 3) @
-			 List.take(row6, 3)
-	val middleMiddle = List.take(List.drop(row4, 3), 3) @
-			   List.take(List.drop(row5, 3), 3) @
-			   List.take(List.drop(row6, 3), 3)
-	val middleRight = List.drop(row4, 6) @
-			  List.drop(row5, 6) @
-			  List.drop(row6, 6)
-	val bottomLeft = List.take(row7, 3) @
-			 List.take(row8, 3) @
-			 List.take(row9, 3)
-	val bottomMiddle = List.take(List.drop(row7, 3), 3) @ 
-			   List.take(List.drop(row8, 3), 3) @ 
-			   List.take(List.drop(row9, 3), 3)
-	val bottomRight = List.drop(row7, 6) @ 
-			  List.drop(row8, 6) @ 
-			  List.drop(row9, 6)
+	val topLeft = Vector.sub(row1,0) :: Vector.sub(row1,1) :: Vector.sub(row1,2) ::
+		      Vector.sub(row2,0) :: Vector.sub(row2,1) :: Vector.sub(row2,2) ::
+		      Vector.sub(row3,0) :: Vector.sub(row3,1) :: [Vector.sub(row3,2)]
+
+	val topMiddle = Vector.sub(row1,3) :: Vector.sub(row1,4) :: Vector.sub(row1,5) ::
+			Vector.sub(row2,3) :: Vector.sub(row2,4) :: Vector.sub(row2,5) ::
+			Vector.sub(row3,3) :: Vector.sub(row3,4) :: [Vector.sub(row3,5)]
+									
+	val topRight = Vector.sub(row1,6) :: Vector.sub(row1,7) :: Vector.sub(row1,8) ::
+		       Vector.sub(row2,6) :: Vector.sub(row2,7) :: Vector.sub(row2,8) ::
+		       Vector.sub(row3,6) :: Vector.sub(row3,7) :: [Vector.sub(row3,8)]
+								       
+	val middleLeft = Vector.sub(row4,0) :: Vector.sub(row4,1) :: Vector.sub(row4,2) ::
+			 Vector.sub(row5,0) :: Vector.sub(row5,1) :: Vector.sub(row5,2) ::
+			 Vector.sub(row6,0) :: Vector.sub(row6,1) :: [Vector.sub(row6,2)]
+									 
+	val middleMiddle = Vector.sub(row4,3) :: Vector.sub(row4,4) :: Vector.sub(row4,5) ::
+			   Vector.sub(row5,3) :: Vector.sub(row5,4) :: Vector.sub(row5,5) ::
+			   Vector.sub(row6,3) :: Vector.sub(row6,4) :: [Vector.sub(row6,5)]
+									   
+	val middleRight = Vector.sub(row4,6) :: Vector.sub(row4,7) :: Vector.sub(row4,8) ::
+			  Vector.sub(row5,6) :: Vector.sub(row5,7) :: Vector.sub(row5,8) ::
+			  Vector.sub(row6,6) :: Vector.sub(row6,7) :: [Vector.sub(row6,8)]
+									  
+	val bottomLeft = Vector.sub(row7,0) :: Vector.sub(row7,1) :: Vector.sub(row7,2) ::
+			 Vector.sub(row8,0) :: Vector.sub(row8,1) :: Vector.sub(row8,2) ::
+			 Vector.sub(row9,0) :: Vector.sub(row9,1) :: [Vector.sub(row9,2)]
+									 
+	val bottomMiddle = Vector.sub(row7,3) :: Vector.sub(row7,4) :: Vector.sub(row7,5) ::
+			   Vector.sub(row8,3) :: Vector.sub(row8,4) :: Vector.sub(row8,5) ::
+			   Vector.sub(row9,3) :: Vector.sub(row9,4) :: [Vector.sub(row9,5)]
+									   
+	val bottomRight = Vector.sub(row7,6) :: Vector.sub(row7,7) :: Vector.sub(row7,8) ::
+			  Vector.sub(row8,6) :: Vector.sub(row8,7) :: Vector.sub(row8,8) ::
+			  Vector.sub(row9,6) :: Vector.sub(row9,7) :: [Vector.sub(row9,8)]
     in
-	topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
-	middleRight :: bottomLeft :: bottomMiddle :: bottomRight :: []
-    end
-    
-(* updateSquareToHorizontal l
-   TYPE: 'a list list -> 'a list list
-   PRE: l contains 9 lists, with 9 elements each
-   POST: the 3x3 squares divided into 9 rows
-*)
-
-fun updateSquareToHorizontal ([]) = []
-  | updateSquareToHorizontal (s) = 
-    let
-
-	val square1 = List.nth(s, 0)
-	val square2 = List.nth(s, 1)
-	val square3 = List.nth(s, 2)
-	val square4 = List.nth(s, 3)
-	val square5 = List.nth(s, 4)
-	val square6 = List.nth(s, 5)
-	val square7 = List.nth(s, 6)
-	val square8 = List.nth(s, 7)
-	val square9 = List.nth(s, 8)
-	
-
-	val row1 = List.take(square1, 3) @
-		      List.take(square2, 3) @
-		      List.take(square3, 3)
-	val row2 = List.take(List.drop(square1, 3), 3) @ 
-			List.take(List.drop(square2, 3), 3) @
-			List.take(List.drop(square3, 3), 3)
-	val row3 = List.drop(square1, 6) @
-		       List.drop(square2, 6) @
-		       List.drop(square3, 6)
-	val row4 = List.take(square4, 3) @
-			 List.take(square5, 3) @
-			 List.take(square6, 3)
-	val row5 = List.take(List.drop(square4, 3), 3) @
-			   List.take(List.drop(square5, 3), 3) @
-			   List.take(List.drop(square6, 3), 3)
-	val row6 = List.drop(square4, 6) @
-			  List.drop(square5, 6) @
-			  List.drop(square6, 6)
-	val row7 = List.take(square7, 3) @
-			 List.take(square8, 3) @
-			 List.take(square9, 3)
-	val row8 = List.take(List.drop(square7, 3), 3) @ 
-			   List.take(List.drop(square8, 3), 3) @ 
-			   List.take(List.drop(square9, 3), 3)
-	val row9 = List.drop(square7, 6) @ 
-			  List.drop(square8, 6) @ 
-			  List.drop(square9, 6)
-    in
-	row1 :: row2 :: row3 :: row4 :: row5 ::
-	row6 :: row7 :: row8 :: row9 :: []
-    end
+	Vector.fromList(
+	    List.map (fn x => Vector.fromList x) 
+		     (topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
+		      middleRight :: bottomLeft :: bottomMiddle :: [bottomRight]))
+    end;
 
 (* ascii' l
    TYPE: int list -> string
