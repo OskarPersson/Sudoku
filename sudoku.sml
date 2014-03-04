@@ -397,13 +397,13 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 		    b
     in  
 	if i = Vector.length(v)-1 then
-	    if (c < d) then
+	    if (c < d) orelse (Vector.sub(v,i) = Vector.fromList([0,0,0,0,0,0,0,0,0])) then
 		(Vector.sub(v,i), i)
 	    else
 		(acc, n)
 	else
 	    
-	    if (c < d)  then
+	    if (c < d) orelse (Vector.sub(v,i) = Vector.fromList([0,0,0,0,0,0,0,0,0]))  then
 		
 		squareWithLeastUnknowns'(v, i+1, Vector.sub(v, i), i)
 	    else
@@ -580,7 +580,7 @@ fun traversal' (st as STree(p, v), i) =
 		    traversal' (Vector.sub(v,i), 0)
 	    else
 		if traversal' (Vector.sub(v, i), 0) = NONE then
-		   NONE
+		    NONE
 		else
 		    traversal' (Vector.sub(v,i), 0)
     end;
