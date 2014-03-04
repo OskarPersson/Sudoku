@@ -595,6 +595,51 @@ fun traversal (Empty) = NONE
 	    traversal(STree(p, ls))
 	else
 	    lResult
+    end*)
+
+fun getlp (STree(lp as Puzzle(lph, lpv, lps), lpt)) = lp;
+
+fun getlph (STree(lp as Puzzle(lph, lpv, lps), lpt)) = lph;
+
+fun traversal (st as STree(p, v)) = 
+    traversal' (st, (Vector.length v))
+
+and traversal' (STree(p as (Puzzle(h, v, s)), vv), i) = 
+    let
+	val pp as Puzzle(ph, pv, ps) = oneUnknownOnPuzzle p
+	val ppp = possibleNextSteps pp
+	val l =
+	    if Vector.length(vv) = 1 then
+		SOME (Vector.sub(vv, 0))
+	    else
+		NONE
+		    
+	val lResult = if Vector.length(vv) > 0 then 
+			  traversal (Vector.sub(vv, 0))
+		      else
+			  NONE
+    in
+	if vv = Vector.fromList([]) orelse Vector.length(vv) = 0 then (* [] *)
+	    if ppp = Vector.fromList([]) orelse ppp = Vector.fromList([pp]) then
+		if sumOfAllElements(ph) = 405 then
+		    SOME pp
+		else 
+		    NONE
+	    else
+		(ascii p; traversal(STree(pp, vectorToTreeVector(ppp))))
+	else if Vector.length(vv) = 1 then (* l as ... *)
+	    if possibleNextSteps (getlp(valOf(l))) = Vector.fromList([]) then
+		if sumOfAllElements((getlph(valOf(l)))) = 405 then
+		    SOME (getlp(valOf(l)))
+		else
+		    NONE
+	    else
+		traversal (valOf(l))
+	else (* l::ls *)
+	    if lResult = NONE then
+		traversal'(STree(p, vv), i+1)
+	    else
+		lResult
     end
 
 
@@ -633,7 +678,7 @@ val h = [[0,0,3,0,9,2,0,0,0],
 	 [3,0,0,0,0,8,0,6,0],
 	 [0,0,0,0,0,0,0,5,3],
 	 [0,3,0,0,8,0,0,0,9],
-	 [0,0,0,6,2,0,1,0,0]];
+	 [0,0,0,6,2,0,1,0,0]]; *)
 
 (* INSANE *)
 
