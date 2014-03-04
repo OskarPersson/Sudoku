@@ -353,7 +353,11 @@ fun notInSquare(v) = Vector.fromList(notInSquare'(v, 9, []));
   PRE: true
   POST: v with elements that return false when called to f are removed
 *)
-fun vectorFilter' _ (_, 0) = []
+fun vectorFilter' f (v, 0) = 
+    if f (Vector.sub(v,0)) then
+	[Vector.sub(v,0)]
+    else
+	[]
   | vectorFilter' f (v,i) = 
     if f (Vector.sub(v,i)) then
 	(Vector.sub(v,i)) :: vectorFilter' f (v, i-1)
@@ -379,17 +383,32 @@ fun vectorFilter f v = Vector.fromList(vectorFilter' f (v, Vector.length(v)-1))
 
 
 fun squareWithLeastUnknowns' (v, i, acc, n) = 
-    if i < 0 then
-	(acc, n)
-    else
-	if (Vector.length (vectorFilter (fn x => x = 0) (Vector.sub(v, i))) < 
-	    Vector.length (vectorFilter (fn x => x = 0) acc) andalso 
-	    (Vector.exists (fn x => x = 0) (Vector.sub(v, i)))) orelse 
-	   Vector.length (vectorFilter (fn x => x = 0) acc) = 0  then
-	    
-	    squareWithLeastUnknowns' (v, i-1, Vector.sub(v, i), i)
+    let
+	val a = Vector.length(vectorFilter (fn x => x = 0) (Vector.sub(v, i)))
+			     
+	val b = Vector.length(vectorFilter (fn x => x = 0) acc)
+	val c = if a = 0 then
+		    9
+		else
+		    a
+	val d = if b = 0 then
+		    9
+		else
+		    b
+    in  
+	if i = Vector.length(v)-1 then
+	    if (c < d) then
+		(Vector.sub(v,i), i)
+	    else
+		(acc, n)
 	else
-	    squareWithLeastUnknowns' (v, i-1, acc, n);
+	    
+	    if (c < d)  then
+		
+		squareWithLeastUnknowns'(v, i+1, Vector.sub(v, i), i)
+	    else
+		squareWithLeastUnknowns'(v, i+1, acc, n)	
+    end
 
 (*
   squareWithLeastUnknowns (v)
@@ -400,7 +419,7 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 *)
 
 
-fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, Vector.length(v) -1, Vector.sub(v, 0), 1);
+fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, 1, Vector.sub(v, 0), 0);
 
 
 (* possibleSolutionsForSquare'' (v1, i, v2, j)
@@ -544,6 +563,7 @@ fun vectorToTreeVector v = Vector.map (fn x => STree(x, Vector.fromList([]))) v
    POST: some solution to s if there is one, none otherwise.
 *)
 
+(*
 fun traversal (Empty) = NONE
   | traversal (STree(p as (Puzzle(h, v, s)), [])) = 
     let
