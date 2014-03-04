@@ -557,52 +557,6 @@ fun sumOfAllElements v = Vector.foldr (fn (x,y) => (sumOfElements x)+y) 0 v;
 
 fun vectorToTreeVector v = Vector.map (fn x => STree(x, Vector.fromList([]))) v
 
-(* traversal s
-   TYPE: SudokuTree -> Sudoku option
-   PRE: true
-   POST: some solution to s if there is one, none otherwise.
-*)
-
-(*
-fun traversal (Empty) = NONE
-  | traversal (STree(p as (Puzzle(h, v, s)), [])) = 
-    let
-	val pp as Puzzle(ph, pv, ps) = oneUnknownOnPuzzle p
-	val ppp = possibleNextSteps pp
-    in
-	if ppp = [] orelse ppp = [pp] then
-	    if sumOfAllElements(ph) = 405 then
-		SOME pp
-	    else
-		NONE
-	else
-	    ( traversal(STree(pp, listToTreeList(ppp))))
-    end
-  | traversal (STree(p as (Puzzle(h, v, s)), [l as (STree(lp as Puzzle(lph,_,_), []))])) = 
-    if possibleNextSteps lp = [] then
-	if sumOfAllElements(lph) = 405 then
-	    SOME lp
-	else
-	    NONE
-    else
-	traversal (l)
-
-  | traversal (STree(p as (Puzzle(h, v, s)), l::ls)) = 
-    let
-	val lResult = traversal l
-    in
-	if lResult = NONE then
-	    traversal(STree(p, ls))
-	else
-	    lResult
-    end*)
-
-fun getlp (STree(lp as Puzzle(lph, lpv, lps), lpt)) = lp;
-
-fun getlph (STree(lp as Puzzle(lph, lpv, lps), lpt)) = lph;
-
-fun getl (l as STree(lp as Puzzle(lph, lpv, lps), lpt)) = l;
-
 
 fun traversal' (st as STree(p, v), i) = 
     let
@@ -616,20 +570,26 @@ fun traversal' (st as STree(p, v), i) =
 		else
 		    NONE
 	    else
-		( traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
+		(traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
 	else
 	    
 	    if i < (Vector.length(v)-1) then
-		if traversal' (Vector.sub(v, i), i) = NONE then
-		    traversal' (Vector.sub(v,i+1), i+1)
+		if traversal' (Vector.sub(v, i), 0) = NONE then
+		    traversal' (st, i+1)
 		else
-		    traversal' (Vector.sub(v,i), i)
+		    traversal' (Vector.sub(v,i), 0)
 	    else
-		if traversal' (Vector.sub(v, i), i) = NONE then
-		   traversal' (Vector.sub(v, i), i)
+		if traversal' (Vector.sub(v, i), 0) = NONE then
+		   NONE
 		else
-		    traversal' (Vector.sub(v,i), i)
+		    traversal' (Vector.sub(v,i), 0)
     end;
+
+(* traversal s
+   TYPE: SudokuTree -> Sudoku option
+   PRE: true
+   POST: some solution to s if there is one, none otherwise.
+*)
 
 fun traversal t = traversal' (t, 0)
    
