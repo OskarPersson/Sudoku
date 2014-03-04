@@ -503,7 +503,7 @@ fun replaceAtPos' (p as Puzzle(h, v, s), n, i, pos) =
          has been replaced with each vector in n
 *)
 
-fun replaceAtPos (p, n, pos) = Vector.fromList(replaceAtPos'(p, n, Vector.length(n)-1, pos-1))
+fun replaceAtPos (p, n, pos) = Vector.fromList(replaceAtPos'(p, n, Vector.length(n)-1, pos))
 
 (* possibleNextSteps p
    TYPE: Sudoku -> Sudoku vector
