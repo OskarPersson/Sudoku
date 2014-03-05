@@ -6,7 +6,8 @@ PolyML.print_depth 1000000000;
    REPRESENTATION INVARIANT: 
 *)
 
-datatype Sudoku = Puzzle of int ref vector vector * int ref vector vector * int ref vector vector;
+datatype Sudoku = Puzzle of 
+		  int ref vector ref vector * int ref vector ref vector * int ref vector ref vector;
 
 (* REPRESENTATION CONVENTION: Represents a tree of sudoku puzzles where the first element is the node and
                               the second element represents the subtrees
@@ -79,12 +80,15 @@ fun oneUnknown' v =
 
 fun oneUnknown v = 
     let
-	val newV = Vector.map (fn x => (oneUnknown' ((x)))) v
+	val newV = Vector.map (fn x => (ref(oneUnknown' (!(x))))) (v)
+	val a = Vector.map (fn x => ( Vector.map (fn y => (!y)) (!x))) newV
+	val b = Vector.map (fn x => ( Vector.map (fn y => (!y)) (!x))) v
     in
-	if (newV) = (v) then
+	if a = b then
 	    v
 	else
-	    oneUnknown newV
+	    oneUnknown newV 
+	
     end;
 
 (*
@@ -96,10 +100,10 @@ POST: if v is the vertical representation then the horizontal representation,
 *)
 
 fun verticalHorizontalConverter' (v, 0) = 
-    [(Vector.foldr (fn (x,y) => ref(!(Vector.sub(x, 0)))::y) [] v)]
+    [ref (Vector.foldr (fn (x,y) => ref(!(Vector.sub(!(x), 0)))::y) [] v)]
   | verticalHorizontalConverter' (v, c) = 
-    verticalHorizontalConverter'(v, c-1) @ 
-    [(Vector.foldr (fn (x,y) => ref(!(Vector.sub(x, c)))::y) [] v)];
+    (verticalHorizontalConverter'(v, c-1) @ 
+    [ref (Vector.foldr (fn (x,y) => ref(!(Vector.sub(!(x), c)))::y) [] v)]);
     
 
 (*
@@ -112,9 +116,11 @@ POST: if v is the vertical representation then the horizontal representation,
 
 fun verticalHorizontalConverter (v) = 
     let
-	val a = ((verticalHorizontalConverter' (v, (Vector.length (v)) - 1)))
+	val a = Vector.fromList(verticalHorizontalConverter' (v, (Vector.length (v)) - 1))
     in
-	Vector.fromList((List.map (fn x =>  (Vector.fromList x)) a))
+	
+
+	(Vector.map (fn x => ref (Vector.fromList(!x))) a)
     end
 
 (* squareHorizontalConverter v
@@ -127,17 +133,17 @@ fun verticalHorizontalConverter (v) =
 fun squareHorizontalConverter v = 
     let
 
-	val row1 = (Vector.sub(v, 0))
-	val row2 = (Vector.sub(v, 1))
-	val row3 = (Vector.sub(v, 2))
-	val row4 = (Vector.sub(v, 3))
-	val row5 = (Vector.sub(v, 4))
-	val row6 = (Vector.sub(v, 5))
-	val row7 = (Vector.sub(v, 6))
-	val row8 = (Vector.sub(v, 7))
-	val row9 = (Vector.sub(v, 8))
+	val row1 = !(Vector.sub(v, 0))
+	val row2 = !(Vector.sub(v, 1))
+	val row3 = !(Vector.sub(v, 2))
+	val row4 = !(Vector.sub(v, 3))
+	val row5 = !(Vector.sub(v, 4))
+	val row6 = !(Vector.sub(v, 5))
+	val row7 = !(Vector.sub(v, 6))
+	val row8 = !(Vector.sub(v, 7))
+	val row9 = !(Vector.sub(v, 8))
 			     
-		       
+	   
 	val topLeft = ref(!(Vector.sub(row1,0))) :: ref(!(Vector.sub(row1,1))) :: ref(!(Vector.sub(row1,2))) ::
 		      ref(!(Vector.sub(row2,0))) :: ref(!(Vector.sub(row2,1))) :: ref(!(Vector.sub(row2,2))) ::
 		      ref(!(Vector.sub(row3,0))) :: ref(!(Vector.sub(row3,1))) :: [ref(!(Vector.sub(row3,2)))]
@@ -177,10 +183,12 @@ fun squareHorizontalConverter v =
 			  ref(!(Vector.sub(row9,6))) :: ref(!(Vector.sub(row9,7))) :: [ref(!(Vector.sub(row9,8)))] 
     in
 	 (Vector.fromList(
-	     (List.map (fn x => (Vector.fromList (x))) 
+	     (List.map (fn x => ref (Vector.fromList (x))) 
 		     (topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
 		      middleRight :: bottomLeft :: bottomMiddle :: [bottomRight]))))
+	
     end;
+
 
 (*
 ascii p
@@ -203,13 +211,13 @@ fun ascii (Puzzle(h, v, r)) =
 
 	fun ascii'' (i, x) =
 	    if i = 0 then
-		"| " ^ Int.toString(!(Vector.sub(x, i))) ^ " " ^ ascii''(i+1, x)
+		"| " ^ Int.toString(!(Vector.sub(!x, i))) ^ " " ^ ascii''(i+1, x)
             else if i = 2 orelse i = 5 then
-		Int.toString(!(Vector.sub(x, i))) ^ " | " ^ ascii''(i+1, x)
-	    else if i = (Vector.length (x)) -1 then
-		Int.toString(!(Vector.sub(x, i))) ^ " | "
+		Int.toString(!(Vector.sub(!x, i))) ^ " | " ^ ascii''(i+1, x)
+	    else if i = (Vector.length (!x)) -1 then
+		Int.toString(!(Vector.sub(!x, i))) ^ " | "
 	    else
-		Int.toString(!(Vector.sub(x, i))) ^ " " ^ ascii''(i+1, x)
+		Int.toString(!(Vector.sub(!x, i))) ^ " " ^ ascii''(i+1, x)
 
         (*
         ascii' (i,x)
@@ -275,7 +283,7 @@ fun duplicatesExists'' (v) =
 fun duplicatesExists' (i,v) = 
     if i = Vector.length v then
 	false
-    else if duplicatesExists'' (Vector.sub(v, i)) then
+    else if duplicatesExists'' (!(Vector.sub(v, i))) then
 	true
     else
 	duplicatesExists' (i+1, v);
@@ -326,7 +334,7 @@ fun permute' (i, v) =
 *)
 
 fun permute v = 
-    Vector.fromList (List.map (fn l => Vector.fromList l) (permute' ((Vector.length v)-1, v)))
+    Vector.fromList (List.map (fn l => ref(Vector.fromList l)) (permute' ((Vector.length v)-1, v)))
 
 (* ======================================================================================== *)
 
@@ -389,9 +397,10 @@ fun vectorFilter f v = Vector.fromList(vectorFilter' f (v, Vector.length(v)-1))
 
 fun squareWithLeastUnknowns' (v, i, acc, n) = 
     let
-	val a = Vector.length(vectorFilter (fn x => !x = 0) (Vector.sub(v, i)))
+	
+	val a = Vector.length(vectorFilter (fn x => (!x) = 0) (!(Vector.sub(v, i))))
 			     
-	val b = Vector.length(vectorFilter (fn x => !x = 0) acc)
+	val b = Vector.length(vectorFilter (fn x => !x = 0) (!(acc)))
 	val c = if a = 0 then
 		    9
 		else
@@ -402,19 +411,19 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 		    b
 
 	val z = Vector.fromList([ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0])
+
     in  
+	
 	if i = Vector.length(v)-1 then
-	    if (c < d) orelse ((Vector.sub(v,i)) = z) then
-		((Vector.sub(v,i)), i)
+	    if (c < d) orelse (!(Vector.sub(v,i)) = z) then
+		(!(Vector.sub(v,i)), i)
 	    else
-		((acc), n)
-	else
-	    
-	    if (c < d) orelse ((Vector.sub(v,i)) = z)  then
-		
-		squareWithLeastUnknowns'(v, i+1, Vector.sub(v, i), i)
+		(!(acc), n)
+	else	    
+	    if (c < d) orelse (!(Vector.sub(v,i)) = z)  then		
+		squareWithLeastUnknowns'(v, i+1, (Vector.sub(v, i)), i)
 	    else
-		squareWithLeastUnknowns'(v, i+1, acc, n)	
+		squareWithLeastUnknowns'(v, i+1, ((acc)), n)	
     end
 
 (*
@@ -426,7 +435,7 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 *)
 
 
-fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, 1, Vector.sub(v, 0), 0);
+fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, 1, ((Vector.sub(v, 0))), 0);
 
 
 (* possibleSolutionsForSquare'' (v1, i, v2, j)
@@ -463,9 +472,9 @@ fun possibleSolutionsForSquare'' (v1, i, v2, j) =
 
 fun possibleSolutionsForSquare' (s, m, i, p as Puzzle(h, v, sqrs), n) = 
     if i = 0 then
-	[possibleSolutionsForSquare'' (s, 0, Vector.sub(m, 0), 0)]
+	[ref (possibleSolutionsForSquare'' (s, 0, !(Vector.sub(m, 0)), 0))]
     else
-	possibleSolutionsForSquare'' (s, 0, Vector.sub(m, i), 0) :: 
+	ref (possibleSolutionsForSquare'' (s, 0, !(Vector.sub(m, i)), 0)) :: 
 	possibleSolutionsForSquare' (s, m, i-1, p, n);
 
 (* possibleSolutionsForSquare (s, m)
@@ -545,14 +554,16 @@ fun oneUnknownOnPuzzle (p as Puzzle(h, v, s)) =
 	val newS = oneUnknown (squareHorizontalConverter(h))
 	val newH = oneUnknown (verticalHorizontalConverter (newV))
 
-	val listh = Vector.map (fn x => (Vector.map (fn y => !y) x)) h
-	val listnewH =  Vector.map (fn x => (Vector.map (fn y => !y) x)) newH
+	val listh = Vector.map (fn x => (Vector.map (fn y => !y) (!x))) h
+	val listnewH =  Vector.map (fn x => (Vector.map (fn y => !y) (!x))) newH
     in
+	
 	if listh = listnewH then
 	    Puzzle(newH, newV, newS)
 	else
 	    
 	    oneUnknownOnPuzzle (Puzzle(newH, newV, newS))
+	
     end;
 
 (* sumOfAllElements v
@@ -561,7 +572,7 @@ fun oneUnknownOnPuzzle (p as Puzzle(h, v, s)) =
    POST: sum of all elements in all vectors in v
 *)
 
-fun sumOfAllElements v = Vector.foldr (fn (x,y) => (sumOfElements x)+y) 0 v;
+fun sumOfAllElements v = Vector.foldr (fn (x,y) => ((sumOfElements (!x))+y)) 0 v;
 
 (* vectorToTreeVector v
    TYPE: Sudoku vector -> SudokuTree vector
@@ -577,6 +588,7 @@ fun traversal' (st as STree(p, v), i) =
 	val pp as Puzzle(ph, pv, ps) = oneUnknownOnPuzzle p
 	val ppp = possibleNextSteps pp
     in
+	
 	if sumOfAllElements(ph) = 405 then
 	    SOME pp
 	else
@@ -587,7 +599,7 @@ fun traversal' (st as STree(p, v), i) =
 		    else
 			NONE
 		else
-		    ( traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
+		    (  traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
 	    else
 		
 		if i < (Vector.length(v)-1) then
@@ -612,7 +624,7 @@ fun traversal' (st as STree(p, v), i) =
 fun traversal t = traversal' (t, 0)
    
 
-(* EASY *)
+(* EASY 
 val h = [[1,2,3,4,5,6,7,8,9],
 	 [4,5,7,0,8,0,2,3,6],
 	 [6,8,9,2,3,7,0,4,0],
@@ -623,9 +635,9 @@ val h = [[1,2,3,4,5,6,7,8,9],
 	 [7,6,1,0,4,0,5,2,8],
 	 [9,3,8,7,2,5,0,6,0]];
 
+*)
 
-
-(* HARD
+(* HARD *)
 val h = [[0,0,0,8,4,0,0,0,9],
 	 [0,0,1,0,0,0,0,0,5],
 	 [8,0,0,0,2,1,4,6,0],
@@ -635,7 +647,7 @@ val h = [[0,0,0,8,4,0,0,0,9],
 	 [0,2,4,9,1,0,0,0,7],
 	 [9,0,0,0,0,0,5,0,0],
 	 [3,0,0,0,8,4,0,0,0]];
-*)
+
 
 
 (* MEDIUM  
@@ -647,7 +659,7 @@ val h = [[0,0,3,0,9,2,0,0,0],
 	 [3,0,0,0,0,8,0,6,0],
 	 [0,0,0,0,0,0,0,5,3],
 	 [0,3,0,0,8,0,0,0,9],
-	 [0,0,0,6,2,0,1,0,0]]; *)
+	 [0,0,0,6,2,0,1,0,0]];*) 
 
 (* INSANE *)
 
@@ -664,7 +676,7 @@ val h = [[8,0,0,0,0,0,0,0,0],
 
 
 
-val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => ref y) x)) h);
+val h = Vector.fromList(List.map (fn x => ref (Vector.fromList (List.map (fn y => ref y) x))) h);
 
 val v = verticalHorizontalConverter(h);
 
@@ -684,3 +696,4 @@ fun diff t =
     in
 	(traversal t; print (Int.toString((Time.toMilliseconds(Time.now())) - now) ^ " milliseconds \n"))
     end
+
