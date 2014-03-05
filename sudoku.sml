@@ -447,8 +447,8 @@ fun possibleSolutionsForSquare'' (v1, i, v2, j) =
 				 (~1, ref ~1)
     in
 	if index <> ~1 andalso j <= (Vector.length(v2)-1) then
-	    (Vector.sub(v1, index) := !(Vector.sub(v2, j));
-	     possibleSolutionsForSquare''(v1, index+1, v2, j+1))
+	    (
+	     possibleSolutionsForSquare''(Vector.update(v1, index, Vector.sub(v2, j)), index+1, v2, j+1))
 	else
 	    v1
     end;
@@ -461,11 +461,12 @@ fun possibleSolutionsForSquare'' (v1, i, v2, j) =
             [Vector.fromList[1, 2, 3, 4, 5], Vector.fromList[1, 4, 3, 2, 5]]
 *)
 
-fun possibleSolutionsForSquare' (s, m, i) = 
+fun possibleSolutionsForSquare' (s, m, i, p as Puzzle(h, v, sqrs), n) = 
     if i = 0 then
 	[possibleSolutionsForSquare'' (s, 0, Vector.sub(m, 0), 0)]
     else
-	possibleSolutionsForSquare'' (s, 0, Vector.sub(m, i), 0) :: possibleSolutionsForSquare' (s, m, i-1);
+	possibleSolutionsForSquare'' (s, 0, Vector.sub(m, i), 0) :: 
+	possibleSolutionsForSquare' (s, m, i-1, p, n);
 
 (* possibleSolutionsForSquare (s, m)
    TYPE: int vector * int vector vector -> int vector vector
@@ -475,7 +476,8 @@ fun possibleSolutionsForSquare' (s, m, i) =
             Vector.fromList[Vector.fromList[1, 2, 3, 4, 5], Vector.fromList[1, 4, 3, 2, 5]]
 *)
 
-fun possibleSolutionsForSquare (s, m) = Vector.fromList(possibleSolutionsForSquare'(s, m, Vector.length(m)-1));
+fun possibleSolutionsForSquare (s, m, sqrs, n) = 
+    Vector.fromList(possibleSolutionsForSquare'(s, m, Vector.length(m)-1, sqrs,n));
 
 (* replaceAtPos' (p, n, i, pos)
    TYPE: Sudoku * int vector vector * int * int -> Sudoku list
@@ -486,7 +488,7 @@ fun possibleSolutionsForSquare (s, m) = Vector.fromList(possibleSolutionsForSqua
 
 fun replaceAtPos' (p as Puzzle(h, v, s), n, i, pos) = 
     let
-	val newS = ((Vector.sub(s, pos)) := (!(Vector.sub(n,i))); s)
+	val newS = (Vector.update(s, pos, Vector.sub(n, i)))
 	val newH = squareHorizontalConverter (newS)
 	val newV = verticalHorizontalConverter (newH)
     in
@@ -524,7 +526,7 @@ fun possibleNextSteps (p as Puzzle(h, v, s)) =
 	val (square, squareNumber) = squareWithLeastUnknowns (s)
 	val missing = notInSquare (square)
 	val permutations = permute(missing)
-	val solutionsForSquare = possibleSolutionsForSquare(square, permutations)
+	val solutionsForSquare = possibleSolutionsForSquare(square, permutations, p, squareNumber)
     in
 	replaceAtPos(p, solutionsForSquare, squareNumber)
     end;
@@ -536,16 +538,20 @@ fun possibleNextSteps (p as Puzzle(h, v, s)) =
          where there are only one unknown
 *)
 
-fun oneUnknownOnPuzzle (Puzzle(h, v, s)) = 
+fun oneUnknownOnPuzzle (p as Puzzle(h, v, s)) = 
     let
 	val newH = oneUnknown h;
 	val newV = oneUnknown (verticalHorizontalConverter(h))
 	val newS = oneUnknown (squareHorizontalConverter(h))
-	val newH = oneUnknown (verticalHorizontalConverter (newV))		      
+	val newH = oneUnknown (verticalHorizontalConverter (newV))
+
+	val listh = Vector.map (fn x => (Vector.map (fn y => !y) x)) h
+	val listnewH =  Vector.map (fn x => (Vector.map (fn y => !y) x)) newH
     in
-	if Puzzle(newH, newV, newS) = Puzzle(h, v, s) then
+	if listh = listnewH then
 	    Puzzle(newH, newV, newS)
 	else
+	    
 	    oneUnknownOnPuzzle (Puzzle(newH, newV, newS))
     end;
 
@@ -563,7 +569,7 @@ fun sumOfAllElements v = Vector.foldr (fn (x,y) => (sumOfElements x)+y) 0 v;
    POST: a vector of trees where the elements in v are the nodes in each tree
 *)
 
-fun vectorToTreeVector v = Vector.map (fn x => STree(x, Vector.fromList([]))) v
+fun vectorToTreeVector v = Vector.map (fn x => ref(STree(x, Vector.fromList([])))) v
 
 
 fun traversal' (st as STree(p, v), i) = 
@@ -571,26 +577,30 @@ fun traversal' (st as STree(p, v), i) =
 	val pp as Puzzle(ph, pv, ps) = oneUnknownOnPuzzle p
 	val ppp = possibleNextSteps pp
     in
-	if Vector.length v = 0 then
-	    if ppp = Vector.fromList([]) orelse ppp = Vector.fromList([pp]) then
-		if sumOfAllElements(ph) = 405 then
-		    SOME pp
-		else
-		    NONE
-	    else
-		(traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
+	if sumOfAllElements(ph) = 405 then
+	    SOME pp
 	else
-	    
-	    if i < (Vector.length(v)-1) then
-		if traversal' (Vector.sub(v, i), 0) = NONE then
-		    traversal' (st, i+1)
+	    if Vector.length v = 0 then
+		if ppp = Vector.fromList([]) orelse ppp = Vector.fromList([pp]) then
+		    if sumOfAllElements(ph) = 405 then
+			SOME pp
+		    else
+			NONE
 		else
-		    traversal' (Vector.sub(v,i), 0)
+		    ( traversal' (STree(pp, vectorToTreeVector(ppp)), 0))
 	    else
-		if traversal' (Vector.sub(v, i), 0) = NONE then
-		    NONE
+		
+		if i < (Vector.length(v)-1) then
+		    if (traversal' (!(Vector.sub(v, i)), 0)) = NONE then
+			traversal' (st, i+1)
+		    else
+			traversal' (!(Vector.sub(v,i)), 0)
 		else
-		    traversal' (Vector.sub(v,i), 0)
+		    if traversal' (!(Vector.sub(v, i)), 0) = NONE then
+			NONE
+		    else
+			traversal' (!(Vector.sub(v,i)), 0)
+	
     end;
 
 (* traversal s
