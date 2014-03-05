@@ -6,14 +6,14 @@ PolyML.print_depth 1000000000;
    REPRESENTATION INVARIANT: 
 *)
 
-datatype Sudoku = Puzzle of int vector vector * int vector vector * int vector vector;
+datatype Sudoku = Puzzle of int ref vector vector * int ref vector vector * int ref vector vector;
 
 (* REPRESENTATION CONVENTION: Represents a tree of sudoku puzzles where the first element is the node and
                               the second element represents the subtrees
    REPRESENTATION INVARIANT:
 *)
 datatype SudokuTree = Empty
-	 | STree of Sudoku * SudokuTree vector;
+	 | STree of Sudoku * SudokuTree ref vector;
 
 (* sumOfElements' v, i
    TYPE: int vector * int -> int
@@ -23,9 +23,9 @@ datatype SudokuTree = Empty
 
 fun sumOfElements' (v, i) = 
     if i = (Vector.length v)-1 then
-	Vector.sub(v, i)
+	!(Vector.sub(v, i))
     else
-	Vector.sub(v, i) + sumOfElements'(v, i+1);
+	!(Vector.sub(v, i)) + sumOfElements'(v, i+1);
 
 (* sumOfElements v
    TYPE: int vector -> int
@@ -44,9 +44,9 @@ fun sumOfElements (v) = sumOfElements'(v, 0);
 
 fun replaceOneUnknown (v, new) = 
     let
-	val (i, j) = valOf((Vector.findi (fn (x, y) => y = 0) v))
+	val (i, j) = valOf((Vector.findi (fn (x, y) => !y = 0) v))
     in
-	Vector.update(v, i, new)
+	(Vector.sub(v,i) := new; Vector.sub(v,i))
     end;
 
 
@@ -58,15 +58,15 @@ fun replaceOneUnknown (v, new) =
 
 fun oneUnknown' v = 
     let
-	val a = (Vector.findi (fn (x, y) => y = 0) v)
+	val a = (Vector.findi (fn (x, y) => !y = 0) v)
 	val (i, j) = if a <> NONE then
-			 valOf(Vector.findi (fn (x, y) => y = 0) v)
+			 valOf(Vector.findi (fn (x, y) => !y = 0) v)
 		     else
-			 (0, 0)
-	val f = Vector.findi (fn (x, y) => y = 0 andalso x > i) v
+			 (0, ref 0)
+	val f = Vector.findi (fn (x, y) => !y = 0 andalso x > i) v
     in
 	if a <> NONE andalso f = NONE then
-	    Vector.update(v, i, 45 - sumOfElements v)
+	    (Vector.sub(v,i) := 45 - (sumOfElements v); v)
 	else
 	    v
     end;
@@ -79,9 +79,9 @@ fun oneUnknown' v =
 
 fun oneUnknown v = 
     let
-	val newV = Vector.map (fn x => oneUnknown' x) v
+	val newV = Vector.map (fn x => (oneUnknown' ((x)))) v
     in
-	if newV = v then
+	if (newV) = (v) then
 	    v
 	else
 	    oneUnknown newV
@@ -96,10 +96,10 @@ POST: if v is the vertical representation then the horizontal representation,
 *)
 
 fun verticalHorizontalConverter' (v, 0) = 
-    [(Vector.foldr (fn (x,y) => Vector.sub(x, 0)::y) [] v)]
+    [(Vector.foldr (fn (x,y) => ref(!(Vector.sub(x, 0)))::y) [] v)]
   | verticalHorizontalConverter' (v, c) = 
     verticalHorizontalConverter'(v, c-1) @ 
-    [(Vector.foldr (fn (x,y) => Vector.sub(x, c)::y) [] v)];
+    [(Vector.foldr (fn (x,y) => ref(!(Vector.sub(x, c)))::y) [] v)];
     
 
 (*
@@ -111,9 +111,11 @@ POST: if v is the vertical representation then the horizontal representation,
 *)
 
 fun verticalHorizontalConverter (v) = 
-    Vector.fromList(List.map (fn x => Vector.fromList x) 
-			     (verticalHorizontalConverter' (v, (Vector.length (v)) - 1)));
-
+    let
+	val a = ((verticalHorizontalConverter' (v, (Vector.length (v)) - 1)))
+    in
+	Vector.fromList((List.map (fn x =>  (Vector.fromList x)) a))
+    end
 
 (* squareHorizontalConverter v
    TYPE: 'a vector vector -> 'a vector vector
@@ -125,57 +127,59 @@ fun verticalHorizontalConverter (v) =
 fun squareHorizontalConverter v = 
     let
 
-	val row1 = Vector.sub(v, 0)
-	val row2 = Vector.sub(v, 1)
-	val row3 = Vector.sub(v, 2)
-	val row4 = Vector.sub(v, 3)
-	val row5 = Vector.sub(v, 4)
-	val row6 = Vector.sub(v, 5)
-	val row7 = Vector.sub(v, 6)
-	val row8 = Vector.sub(v, 7)
-	val row9 = Vector.sub(v, 8)
+	val row1 = (Vector.sub(v, 0))
+	val row2 = (Vector.sub(v, 1))
+	val row3 = (Vector.sub(v, 2))
+	val row4 = (Vector.sub(v, 3))
+	val row5 = (Vector.sub(v, 4))
+	val row6 = (Vector.sub(v, 5))
+	val row7 = (Vector.sub(v, 6))
+	val row8 = (Vector.sub(v, 7))
+	val row9 = (Vector.sub(v, 8))
 			     
+		       
+	val topLeft = ref(!(Vector.sub(row1,0))) :: ref(!(Vector.sub(row1,1))) :: ref(!(Vector.sub(row1,2))) ::
+		      ref(!(Vector.sub(row2,0))) :: ref(!(Vector.sub(row2,1))) :: ref(!(Vector.sub(row2,2))) ::
+		      ref(!(Vector.sub(row3,0))) :: ref(!(Vector.sub(row3,1))) :: [ref(!(Vector.sub(row3,2)))]
 
-	val topLeft = Vector.sub(row1,0) :: Vector.sub(row1,1) :: Vector.sub(row1,2) ::
-		      Vector.sub(row2,0) :: Vector.sub(row2,1) :: Vector.sub(row2,2) ::
-		      Vector.sub(row3,0) :: Vector.sub(row3,1) :: [Vector.sub(row3,2)]
 
-	val topMiddle = Vector.sub(row1,3) :: Vector.sub(row1,4) :: Vector.sub(row1,5) ::
-			Vector.sub(row2,3) :: Vector.sub(row2,4) :: Vector.sub(row2,5) ::
-			Vector.sub(row3,3) :: Vector.sub(row3,4) :: [Vector.sub(row3,5)]
+								      
+	val topMiddle = ref(!(Vector.sub(row1,3))) :: ref(!(Vector.sub(row1,4))) :: ref(!(Vector.sub(row1,5))) ::
+			ref(!(Vector.sub(row2,3))) :: ref(!(Vector.sub(row2,4))) :: ref(!(Vector.sub(row2,5))) ::
+			ref(!(Vector.sub(row3,3))) :: ref(!(Vector.sub(row3,4))) :: [ref(!(Vector.sub(row3,5)))]
 									
-	val topRight = Vector.sub(row1,6) :: Vector.sub(row1,7) :: Vector.sub(row1,8) ::
-		       Vector.sub(row2,6) :: Vector.sub(row2,7) :: Vector.sub(row2,8) ::
-		       Vector.sub(row3,6) :: Vector.sub(row3,7) :: [Vector.sub(row3,8)]
+	val topRight = ref(!(Vector.sub(row1,6))) :: ref(!(Vector.sub(row1,7))) :: ref(!(Vector.sub(row1,8))) ::
+		       ref(!(Vector.sub(row2,6))) :: ref(!(Vector.sub(row2,7))) :: ref(!(Vector.sub(row2,8))) ::
+		       ref(!(Vector.sub(row3,6))) :: ref(!(Vector.sub(row3,7))) :: [ref(!(Vector.sub(row3,8)))]
 								       
-	val middleLeft = Vector.sub(row4,0) :: Vector.sub(row4,1) :: Vector.sub(row4,2) ::
-			 Vector.sub(row5,0) :: Vector.sub(row5,1) :: Vector.sub(row5,2) ::
-			 Vector.sub(row6,0) :: Vector.sub(row6,1) :: [Vector.sub(row6,2)]
+	val middleLeft = ref(!(Vector.sub(row4,0))) :: ref(!(Vector.sub(row4,1))) :: ref(!(Vector.sub(row4,2))) ::
+			 ref(!(Vector.sub(row5,0))) :: ref(!(Vector.sub(row5,1))) :: ref(!(Vector.sub(row5,2))) ::
+			 ref(!(Vector.sub(row6,0))) :: ref(!(Vector.sub(row6,1))) :: [ref(!(Vector.sub(row6,2)))]
 									 
-	val middleMiddle = Vector.sub(row4,3) :: Vector.sub(row4,4) :: Vector.sub(row4,5) ::
-			   Vector.sub(row5,3) :: Vector.sub(row5,4) :: Vector.sub(row5,5) ::
-			   Vector.sub(row6,3) :: Vector.sub(row6,4) :: [Vector.sub(row6,5)]
+	val middleMiddle = ref(!(Vector.sub(row4,3))) :: ref(!(Vector.sub(row4,4))) :: ref(!(Vector.sub(row4,5))) ::
+			   ref(!(Vector.sub(row5,3))) :: ref(!(Vector.sub(row5,4))) :: ref(!(Vector.sub(row5,5))) ::
+			   ref(!(Vector.sub(row6,3))) :: ref(!(Vector.sub(row6,4))) :: [ref(!(Vector.sub(row6,5)))]
 									   
-	val middleRight = Vector.sub(row4,6) :: Vector.sub(row4,7) :: Vector.sub(row4,8) ::
-			  Vector.sub(row5,6) :: Vector.sub(row5,7) :: Vector.sub(row5,8) ::
-			  Vector.sub(row6,6) :: Vector.sub(row6,7) :: [Vector.sub(row6,8)]
+	val middleRight = ref(!(Vector.sub(row4,6))) :: ref(!(Vector.sub(row4,7))) :: ref(!(Vector.sub(row4,8))) ::
+			  ref(!(Vector.sub(row5,6))) :: ref(!(Vector.sub(row5,7))) :: ref(!(Vector.sub(row5,8))) ::
+			  ref(!(Vector.sub(row6,6))) :: ref(!(Vector.sub(row6,7))) :: [ref(!(Vector.sub(row6,8)))]
 									  
-	val bottomLeft = Vector.sub(row7,0) :: Vector.sub(row7,1) :: Vector.sub(row7,2) ::
-			 Vector.sub(row8,0) :: Vector.sub(row8,1) :: Vector.sub(row8,2) ::
-			 Vector.sub(row9,0) :: Vector.sub(row9,1) :: [Vector.sub(row9,2)]
+	val bottomLeft = ref(!(Vector.sub(row7,0))) :: ref(!(Vector.sub(row7,1))) :: ref(!(Vector.sub(row7,2))) ::
+			 ref(!(Vector.sub(row8,0))) :: ref(!(Vector.sub(row8,1))) :: ref(!(Vector.sub(row8,2))) ::
+			 ref(!(Vector.sub(row9,0))) :: ref(!(Vector.sub(row9,1))) :: [ref(!(Vector.sub(row9,2)))]
 									 
-	val bottomMiddle = Vector.sub(row7,3) :: Vector.sub(row7,4) :: Vector.sub(row7,5) ::
-			   Vector.sub(row8,3) :: Vector.sub(row8,4) :: Vector.sub(row8,5) ::
-			   Vector.sub(row9,3) :: Vector.sub(row9,4) :: [Vector.sub(row9,5)]
+	val bottomMiddle = ref(!(Vector.sub(row7,3))) :: ref(!(Vector.sub(row7,4))) :: ref(!(Vector.sub(row7,5))) ::
+			   ref(!(Vector.sub(row8,3))) :: ref(!(Vector.sub(row8,4))) :: ref(!(Vector.sub(row8,5))) ::
+			   ref(!(Vector.sub(row9,3))) :: ref(!(Vector.sub(row9,4))) :: [ref(!(Vector.sub(row9,5)))]
 									   
-	val bottomRight = Vector.sub(row7,6) :: Vector.sub(row7,7) :: Vector.sub(row7,8) ::
-			  Vector.sub(row8,6) :: Vector.sub(row8,7) :: Vector.sub(row8,8) ::
-			  Vector.sub(row9,6) :: Vector.sub(row9,7) :: [Vector.sub(row9,8)]
+	val bottomRight = ref(!(Vector.sub(row7,6))) :: ref(!(Vector.sub(row7,7))) :: ref(!(Vector.sub(row7,8))) ::
+			  ref(!(Vector.sub(row8,6))) :: ref(!(Vector.sub(row8,7))) :: ref(!(Vector.sub(row8,8))) ::
+			  ref(!(Vector.sub(row9,6))) :: ref(!(Vector.sub(row9,7))) :: [ref(!(Vector.sub(row9,8)))] 
     in
-	Vector.fromList(
-	    List.map (fn x => Vector.fromList x) 
+	 (Vector.fromList(
+	     (List.map (fn x => (Vector.fromList (x))) 
 		     (topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
-		      middleRight :: bottomLeft :: bottomMiddle :: [bottomRight]))
+		      middleRight :: bottomLeft :: bottomMiddle :: [bottomRight]))))
     end;
 
 (*
@@ -199,13 +203,13 @@ fun ascii (Puzzle(h, v, r)) =
 
 	fun ascii'' (i, x) =
 	    if i = 0 then
-		"| " ^ Int.toString(Vector.sub(x, i)) ^ " " ^ ascii''(i+1, x)
+		"| " ^ Int.toString(!(Vector.sub(x, i))) ^ " " ^ ascii''(i+1, x)
             else if i = 2 orelse i = 5 then
-		Int.toString(Vector.sub(x, i)) ^ " | " ^ ascii''(i+1, x)
+		Int.toString(!(Vector.sub(x, i))) ^ " | " ^ ascii''(i+1, x)
 	    else if i = (Vector.length (x)) -1 then
-		Int.toString(Vector.sub(x, i)) ^ " | "
+		Int.toString(!(Vector.sub(x, i))) ^ " | "
 	    else
-		Int.toString(Vector.sub(x, i)) ^ " " ^ ascii''(i+1, x)
+		Int.toString(!(Vector.sub(x, i))) ^ " " ^ ascii''(i+1, x)
 
         (*
         ascii' (i,x)
@@ -238,7 +242,7 @@ fun ascii (Puzzle(h, v, r)) =
 
 fun find (i, x, v) =
     let
-	val result = Vector.findi (fn (j, y) => y <> 0 andalso i<>j andalso x=y ) v
+	val result = Vector.findi (fn (j, y) => !(y) <> 0 andalso i<>j andalso !(x) = !(y) ) v
     in
 	if result = NONE then
 	    false
@@ -255,9 +259,10 @@ fun find (i, x, v) =
 
 fun duplicatesExists'' (v) = 
     let
-	val result = Vector.mapi (fn (i,x) => find (i,x,v)) v
+	val result = Vector.mapi (fn (i,x) => find (i,x,v)) (v)
     in
-	Vector.exists (fn x => x = true) result
+
+	Vector.exists (fn x => x = true) (result)
     end;
 	    
 (* duplicatesExists' (i,v)
@@ -334,8 +339,8 @@ fun permute v =
 
 fun notInSquare' (_, 0, acc) = acc
   | notInSquare' (v, n, acc) = 
-    if (Vector.exists (fn x => x = n) (v))  = false then
-	notInSquare'(v, n-1, n::acc)
+    if (Vector.exists (fn x => !(x) = n) (v))  = false then
+	notInSquare'(v, n-1, ref(n)::acc)
     else
 	notInSquare'(v, n-1, acc)
 
@@ -345,7 +350,7 @@ fun notInSquare' (_, 0, acc) = acc
    POST: numbers 1-9 that are missing in v
 *)
 
-fun notInSquare(v) = Vector.fromList(notInSquare'(v, 9, []));
+fun notInSquare (v) = Vector.fromList(notInSquare'(v, 9, []));
 
 (*
   vectorFilter' f (v, i)
@@ -384,9 +389,9 @@ fun vectorFilter f v = Vector.fromList(vectorFilter' f (v, Vector.length(v)-1))
 
 fun squareWithLeastUnknowns' (v, i, acc, n) = 
     let
-	val a = Vector.length(vectorFilter (fn x => x = 0) (Vector.sub(v, i)))
+	val a = Vector.length(vectorFilter (fn x => !x = 0) (Vector.sub(v, i)))
 			     
-	val b = Vector.length(vectorFilter (fn x => x = 0) acc)
+	val b = Vector.length(vectorFilter (fn x => !x = 0) acc)
 	val c = if a = 0 then
 		    9
 		else
@@ -395,15 +400,17 @@ fun squareWithLeastUnknowns' (v, i, acc, n) =
 		    9
 		else
 		    b
+
+	val z = Vector.fromList([ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0, ref 0])
     in  
 	if i = Vector.length(v)-1 then
-	    if (c < d) orelse (Vector.sub(v,i) = Vector.fromList([0,0,0,0,0,0,0,0,0])) then
-		(Vector.sub(v,i), i)
+	    if (c < d) orelse ((Vector.sub(v,i)) = z) then
+		((Vector.sub(v,i)), i)
 	    else
-		(acc, n)
+		((acc), n)
 	else
 	    
-	    if (c < d) orelse (Vector.sub(v,i) = Vector.fromList([0,0,0,0,0,0,0,0,0]))  then
+	    if (c < d) orelse ((Vector.sub(v,i)) = z)  then
 		
 		squareWithLeastUnknowns'(v, i+1, Vector.sub(v, i), i)
 	    else
@@ -432,15 +439,16 @@ fun squareWithLeastUnknowns (v) = squareWithLeastUnknowns'(v, 1, Vector.sub(v, 0
 
 fun possibleSolutionsForSquare'' (v1, i, v2, j) = 
     let
-	val result = Vector.findi (fn (ind, x) => x=0 andalso ind >= i) v1
+	val result = Vector.findi (fn (ind, x) => !x=0 andalso ind >= i) v1
 				  
 	val (index, value) = if result <> NONE then
 				 valOf(result)
 			     else
-				 (~1, ~1)
+				 (~1, ref ~1)
     in
 	if index <> ~1 andalso j <= (Vector.length(v2)-1) then
-	    possibleSolutionsForSquare''(Vector.update(v1, index, Vector.sub(v2, j)), index+1, v2, j+1)
+	    (Vector.sub(v1, index) := !(Vector.sub(v2, j));
+	     possibleSolutionsForSquare''(v1, index+1, v2, j+1))
 	else
 	    v1
     end;
@@ -478,7 +486,7 @@ fun possibleSolutionsForSquare (s, m) = Vector.fromList(possibleSolutionsForSqua
 
 fun replaceAtPos' (p as Puzzle(h, v, s), n, i, pos) = 
     let
-	val newS = (Vector.update(s, pos, Vector.sub(n, i)))
+	val newS = ((Vector.sub(s, pos)) := (!(Vector.sub(n,i))); s)
 	val newH = squareHorizontalConverter (newS)
 	val newV = verticalHorizontalConverter (newH)
     in
@@ -646,7 +654,7 @@ val h = [[8,0,0,0,0,0,0,0,0],
 
 
 
-val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => y) x)) h);
+val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => ref y) x)) h);
 
 val v = verticalHorizontalConverter(h);
 
