@@ -95,8 +95,8 @@ fun tests () =
 			   "Test 2: Failed"
 		      ) ^ "\n"
 
+
 	(* Tests whether the function returns the correct square*)
-	(* Tests if the solution to pex is correct*)
 	val results = results ^ 
 		      (if squareWithLeastUnknowns s = square then
 			   "Test 3: Successful!"
@@ -106,4 +106,3 @@ fun tests () =
     in
 	print results
     end;
-	
