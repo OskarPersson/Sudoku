@@ -10,7 +10,7 @@ fun tests () =
 		 [0,3,0,0,8,0,0,0,9],
 		 [0,0,0,6,2,0,1,0,0]]
 
-	val h = Vector.fromList(List.map (fn x => Vector.fromList (List.map (fn y => y) x)) h);
+	val h = (List.map (fn x => (List.map (fn y => y) x)) h);
 
 	val v = verticalHorizontalConverter(h);
 
@@ -34,8 +34,11 @@ fun tests () =
 
 	val s2  = squareHorizontalConverter(h2);
 
-	val solution = Puzzle(h2,v2,s2); 
+	val solution = Puzzle(h2,v2,s2);
+
+	(*val square = *)
     in
 	valOf(traversal t) = solution
+	(*squareWithLeastUnknowns s = *)
     end
 	
