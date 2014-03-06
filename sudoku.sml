@@ -438,7 +438,17 @@ fun traversal (Empty) = NONE
 	    traversal(STree(p, ls))
 	else
 	    lResult
-    end
+    end;
+
+
+(* createPuzzleFromHorizontal h
+   TYPE: int list list -> Sudoku
+   PRE: h is a well defined list of horizontal lists
+   POST: A Sudoku puzzle with h as the horizontal lists
+*)
+
+fun createPuzzleFromHorizontal h = 
+    Puzzle(h, verticalHorizontalConverter (h), squareHorizontalConverter (h));
 
 
 (* solve s 
@@ -448,6 +458,7 @@ POST: none
 SIDE-EFFECTS: prints a solution to s if there is one, 
               otherwise it says that a solution doesn't exist
 *)
+
 fun solve s =  
     let
 	val result = traversal(STree(s, []))
@@ -458,4 +469,12 @@ fun solve s =
 	    ascii(valOf(result))
     end;
 
-fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); solve t; print ("\n" ^ Date.toString(Date.fromTimeLocal(Time.now ()))));
+
+(* time
+   TYPE: Sudoku -> unit
+   PRE: true
+   POST: (none)
+   SIDE-EFFECTS: prints the timestamp for when the function was called and then when it was done
+*)
+
+fun time t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); solve t; print ("\n" ^ Date.toString(Date.fromTimeLocal(Time.now ()))));
