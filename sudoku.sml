@@ -64,69 +64,47 @@ fun oneUnknown l =
     end;
 
 (*
-vToH (v, r)
-TYPE: 'a list list * int -> 'a list
+verticalHorizontalConverter' (l, c)
+TYPE: 'a list list * int -> 'a list list
 PRE: true
-POST: a list of elements on position r in each of the lists in v
+POST: if l is the vertical representation then the horizontal representation,
+      else if l is the horizontal representation then the vertical representation
 *)
 
-fun vToH ([], _) = []
-  | vToH (v::vs, row) =
-    [List.nth(v, row-1)] @ vToH(vs, row);
+fun verticalHorizontalConverter' (l, 0) = [(List.foldr (fn (x,y) => List.nth(x, 0)::y) [] l)]
+  | verticalHorizontalConverter' (l, c) = verticalHorizontalConverter'(l, c-1) @ [(List.foldr (fn (x,y) => List.nth(x, c)::y) [] l)];
+
 
 (*
-updateVerticalToHorizontal (h,v)
-TYPE: 'a list * 'b list list -> 'b list list
+verticalHorizontalConverter (l)
+TYPE: 'a list list -> 'a list list
 PRE: true
-POST: h updated with the corresponding elements in v
+POST: if l is the vertical representation then the horizontal representation,
+      else if l is the horizontal representation then the vertical representation
 *)
 
-fun updateVerticalToHorizontal ([], v) = []
-  | updateVerticalToHorizontal (h::hs, v) = 
-    vToH(v, 9 - List.length(hs)) :: updateVerticalToHorizontal(hs, v);
+fun verticalHorizontalConverter (l) =  verticalHorizontalConverter'(l, List.length(l) -1);
 
-(* hToV (h, r)
-TYPE: 'a list list * int -> 'a list
-PRE: true
-POST: a list of elements on position r in each of the lists in h
-*)
-
-fun hToV ([], _) = []
-  | hToV (h::hs, row) =
-    [List.nth(h, row-1)] @ hToV(hs, row);
-
-(*
-updateHorizontalToVertical (v,h)
-TYPE: 'a list * 'b list list -> 'b list list
-PRE: true
-POST: v updated with the corresponding elements in h
-*)
-
-fun updateHorizontalToVertical([], h) = []
-  | updateHorizontalToVertical (v::vs, h) = 
-    hToV(h, 9 - List.length(vs)) :: updateHorizontalToVertical(vs, h);
-
-
-
-(* updateHorizontalToSquare l
+(* squareHorizontalConverter l
    TYPE: 'a list list -> 'a list list
-   PRE: l contains 9 lists, with 9 elements each
-   POST: the lists divided into 3x3-squares
+   PRE: v contains 9 lists, with 9 elements each
+   POST: if l is the square representation then the horizontal representation,
+         else if l is the horizontal representation then the square representation
 *)
 
-fun updateHorizontalToSquare ([]) = []
-  | updateHorizontalToSquare (h) = 
+fun squareHorizontalConverter ([]) = []
+  | squareHorizontalConverter (l) = 
     let
 
-	val row1 = List.nth(h, 0)
-	val row2 = List.nth(h, 1)
-	val row3 = List.nth(h, 2)
-	val row4 = List.nth(h, 3)
-	val row5 = List.nth(h, 4)
-	val row6 = List.nth(h, 5)
-	val row7 = List.nth(h, 6)
-	val row8 = List.nth(h, 7)
-	val row9 = List.nth(h, 8)
+	val row1 = List.nth(l, 0)
+	val row2 = List.nth(l, 1)
+	val row3 = List.nth(l, 2)
+	val row4 = List.nth(l, 3)
+	val row5 = List.nth(l, 4)
+	val row6 = List.nth(l, 5)
+	val row7 = List.nth(l, 6)
+	val row8 = List.nth(l, 7)
+	val row9 = List.nth(l, 8)
 	
 
 	val topLeft = List.take(row1, 3) @
@@ -159,60 +137,8 @@ fun updateHorizontalToSquare ([]) = []
     in
 	topLeft :: topMiddle :: topRight :: middleLeft :: middleMiddle :: 
 	middleRight :: bottomLeft :: bottomMiddle :: bottomRight :: []
-    end
-    
-(* updateSquareToHorizontal l
-   TYPE: 'a list list -> 'a list list
-   PRE: l contains 9 lists, with 9 elements each
-   POST: the 3x3 squares divided into 9 rows
-*)
+    end;
 
-fun updateSquareToHorizontal ([]) = []
-  | updateSquareToHorizontal (s) = 
-    let
-
-	val square1 = List.nth(s, 0)
-	val square2 = List.nth(s, 1)
-	val square3 = List.nth(s, 2)
-	val square4 = List.nth(s, 3)
-	val square5 = List.nth(s, 4)
-	val square6 = List.nth(s, 5)
-	val square7 = List.nth(s, 6)
-	val square8 = List.nth(s, 7)
-	val square9 = List.nth(s, 8)
-	
-
-	val row1 = List.take(square1, 3) @
-		      List.take(square2, 3) @
-		      List.take(square3, 3)
-	val row2 = List.take(List.drop(square1, 3), 3) @ 
-			List.take(List.drop(square2, 3), 3) @
-			List.take(List.drop(square3, 3), 3)
-	val row3 = List.drop(square1, 6) @
-		       List.drop(square2, 6) @
-		       List.drop(square3, 6)
-	val row4 = List.take(square4, 3) @
-			 List.take(square5, 3) @
-			 List.take(square6, 3)
-	val row5 = List.take(List.drop(square4, 3), 3) @
-			   List.take(List.drop(square5, 3), 3) @
-			   List.take(List.drop(square6, 3), 3)
-	val row6 = List.drop(square4, 6) @
-			  List.drop(square5, 6) @
-			  List.drop(square6, 6)
-	val row7 = List.take(square7, 3) @
-			 List.take(square8, 3) @
-			 List.take(square9, 3)
-	val row8 = List.take(List.drop(square7, 3), 3) @ 
-			   List.take(List.drop(square8, 3), 3) @ 
-			   List.take(List.drop(square9, 3), 3)
-	val row9 = List.drop(square7, 6) @ 
-			  List.drop(square8, 6) @ 
-			  List.drop(square9, 6)
-    in
-	row1 :: row2 :: row3 :: row4 :: row5 ::
-	row6 :: row7 :: row8 :: row9 :: []
-    end
 
 (* ascii' l
    TYPE: int list -> string
@@ -410,8 +336,8 @@ fun replaceAtPos (_, [], _) = []
   | replaceAtPos (p as Puzzle(h, v, s), n::ns, pos) = 
     let
 	val newS = (replaceAtPos'(s, n, pos))
-	val newH = updateSquareToHorizontal (newS)
-	val newV = updateHorizontalToVertical (v, newH)
+	val newH = squareHorizontalConverter (newS)
+	val newV = verticalHorizontalConverter (newH)
     in
 	if not (duplicatesExists(newH)) andalso not (duplicatesExists(newV)) andalso 
 	   Puzzle(h, v, s) <> Puzzle(newH, newV, newS) then
@@ -446,9 +372,9 @@ fun possibleNextSteps (p as Puzzle(h, v, s)) =
 fun oneUnknownOnPuzzle (Puzzle(h, v, s)) = 
     let
 	val newH = oneUnknown h;
-	val newV = oneUnknown (updateHorizontalToVertical(v, h))
-	val newS = oneUnknown (updateHorizontalToSquare (h))
-	val newH = oneUnknown (updateVerticalToHorizontal (h, newV))		      
+	val newV = oneUnknown (verticalHorizontalConverter (h))
+	val newS = oneUnknown (squareHorizontalConverter (h))
+	val newH = oneUnknown (verticalHorizontalConverter (newV))
     in
 	if Puzzle(newH, newV, newS) = Puzzle(h, v, s) then
 	    Puzzle(newH, newV, newS)
