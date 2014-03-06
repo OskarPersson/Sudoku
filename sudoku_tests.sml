@@ -38,7 +38,7 @@ fun tests () =
 
 	(*val square = *)
     in
-	valOf(traversal t) = solution
+	(solve p) = solution
 	(*squareWithLeastUnknowns s = *)
     end
 	
