@@ -35,6 +35,13 @@ val texh = STree (pex, [])
 
 val t = STree (p, []);
 
+(* tests
+   TYPE: unit -> unit
+   PRE: true
+   POST: (none)
+   SIDE-EFFECTS: Prints the results of 3 test cases
+*)
+
 fun tests () = 
     let
 	val h2 = [[8,3,5,4,1,6,9,2,7],
@@ -71,12 +78,32 @@ fun tests () =
 	
 	val square = ([0,0,7,4,0,0,6,5,0],3);
 
-    in
+	val results = ""
+	
 	(* Tests if the solution to p is correct*)
-	valOf(traversal t) = solution1 andalso
+	val results = results ^ 
+		      (if valOf(traversal t) = solution1 then
+			   "Test 1: Successful!"
+		       else
+			   "Test 1: Failed"
+		      ) ^ "\n"
 	(* Tests if the solution to pex is correct*)
-	valOf(traversal texh) = solution2 andalso
+	val results = results ^ 
+		      (if valOf(traversal texh) = solution2 then
+			   "Test 2: Successful!"
+		       else
+			   "Test 2: Failed"
+		      ) ^ "\n"
+
 	(* Tests whether the function returns the correct square*)
-	squareWithLeastUnknowns s = square
+	(* Tests if the solution to pex is correct*)
+	val results = results ^ 
+		      (if squareWithLeastUnknowns s = square then
+			   "Test 3: Successful!"
+		       else
+			   "Test 3: Failed"
+		      ) ^ "\n"
+    in
+	print results
     end;
 	
