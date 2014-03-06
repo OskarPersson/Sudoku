@@ -1,3 +1,4 @@
+(* Medium difficulty*)
 val h = [[8,0,0,4,0,6,0,0,7],
 	 [0,0,0,0,0,0,4,0,0],
 	 [0,1,0,0,0,0,6,5,0],
@@ -7,7 +8,7 @@ val h = [[8,0,0,4,0,6,0,0,7],
 	 [0,5,2,0,0,0,0,9,0],
 	 [0,0,1,0,0,0,0,0,0],
 	 [3,0,0,9,0,2,0,0,5]]
-
+(* Very hard difficulty *)
 val exh = [[0,7,4,0,0,0,0,9,3],
 	   [0,0,5,9,0,0,0,0,4],
 	   [0,0,0,0,0,2,0,0,0],
@@ -28,9 +29,9 @@ val s  = squareHorizontalConverter(h);
 
 val p = Puzzle(h,v,s);
 
-val pexh = Puzzle(exh, exv, exs)
+val pex = Puzzle(exh, exv, exs)
 
-val texh = STree (pexh, [])
+val texh = STree (pex, [])
 
 val t = STree (p, []);
 
@@ -71,8 +72,11 @@ fun tests () =
 	val square = ([0,0,7,4,0,0,6,5,0],3);
 
     in
+	(* Tests if the solution to p is correct*)
 	valOf(traversal t) = solution1 andalso
+	(* Tests if the solution to pex is correct*)
 	valOf(traversal texh) = solution2 andalso
+	(* Tests whether the function returns the correct square*)
 	squareWithLeastUnknowns s = square
     end;
 	
