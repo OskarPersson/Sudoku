@@ -445,8 +445,18 @@ fun traversal (Empty) = NONE
 TYPE: Sudoku -> unit
 PRE: true
 POST: none
+SIDE-EFFECTS: prints a solution to s if there is one, 
+              otherwise it says that a solution doesn't exist
 *)
-fun solve s =  ascii(valOf(traversal(STree(s,[]))))
+fun solve s =  
+    let
+	val result = traversal(STree(s, []))
+    in
+	if result = NONE then
+	    print "There is no solution to this puzzle\n"
+	else
+	    ascii(valOf(result))
+    end;
 
 
 (* EASY
@@ -486,12 +496,11 @@ val h = [[0,0,3,0,9,2,0,0,0],
 	 [0,3,0,0,8,0,0,0,9],
 	 [0,0,0,6,2,0,1,0,0]];
 
-val v = updateHorizontalToVertical(h, h);
 
-val s  = updateHorizontalToSquare(h);
+val v = verticalHorizontalConverter (h);
+
+val s  = squareHorizontalConverter(h);
 
 val p = Puzzle(h,v,s)
-
-val t = STree (p, []);
 
 fun timee t = (print (Date.toString(Date.fromTimeLocal(Time.now ())) ^ "\n"); solve t; print ("\n" ^ Date.toString(Date.fromTimeLocal(Time.now ()))));
